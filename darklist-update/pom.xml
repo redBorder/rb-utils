@@ -5,8 +5,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>redBorder-utils</groupId>
-    <artifactId>darklist-update</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <artifactId>update-darklist</artifactId>
+    <version>1.0</version>
+
 
     <dependencies>
         <dependency>
