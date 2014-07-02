@@ -60,12 +60,10 @@ public class DarkListUpdate {
 
         if (client.checkExists().forPath("/darklist/lastUpdate") == null) {
             client.create().creatingParentsIfNeeded().forPath("/darklist/lastUpdate");
-            System.out.println("Creating /darklist/lastUpdate path ...");
             String bytes = "" + System.currentTimeMillis() / 1000;
-            System.out.println("Saved timestamp: " + bytes);
             client.setData().forPath("/darklist/lastUpdate", bytes.getBytes());
             allList = true;
-            System.out.println("Will download full darkList");
+            System.out.println("Saved timestamp - Will download full darkList.");
         } else {
 
             byte[] bytes = client.getData().forPath("/darklist/lastUpdate");
@@ -73,23 +71,24 @@ public class DarkListUpdate {
 
             if (diff > Integer.valueOf(args[0])) {
                 allList = true;
-                System.out.println("Incremental time: " + diff + " - timeout: " + Integer.valueOf(args[0]));
-                System.out.println("Will download all darkList");
+                System.out.println("Incremental time: " + diff + " (limit: " + Integer.valueOf(args[0]) + ")");
+                System.out.println("Will download full darkList");
             } else {
-                System.out.println("Incremental time: " + diff + "- timeout: " + Integer.valueOf(args[0]));
+                System.out.println("Incremental time: " + diff + " (limit: " + Integer.valueOf(args[0]) + ")");
                 System.out.println("Will download incremental darkList");
                 allList = false;
             }
 
             String bytesToUpdate = "" + System.currentTimeMillis() / 1000;
-            System.out.println("Updating timestamp: " + bytesToUpdate);
+            System.out.println("Updating timestamp.");
             client.setData().forPath("/darklist/lastUpdate", bytesToUpdate.getBytes());
         }
 
 
-        System.out.println("Barrier: on");
+        System.out.println("Set barrier: on");
 
         System.out.println("----------------------");
+
         System.out.println("Downloading darklist ...");
 
         HttpClient httpclient = HttpClients.createDefault();
@@ -126,7 +125,7 @@ public class DarkListUpdate {
         output.close();
 
 
-        System.out.println("Done darklist donwload!");
+        System.out.println("Done!");
 
 
         Map<Integer, String> category = new HashMap<Integer, String>();
@@ -263,7 +262,7 @@ public class DarkListUpdate {
         protocol.put(392, "Malware URL");
         protocol.put(393, "Malware domain");
 
-        System.out.println("Parser CSV ...");
+        System.out.println("Parsers CSV data ...");
 
 
         Reader readerCsv = new StringReader(output.toString());
@@ -275,8 +274,6 @@ public class DarkListUpdate {
         List<Map> dataToSave = new ArrayList<Map>();
         List<String> keysToSave = new ArrayList<String>();
 
-
-        System.out.println("Creating maps ...");
 
         for (int i = 1; i < csv.size(); i++) {
 
@@ -317,6 +314,11 @@ public class DarkListUpdate {
 
         Grid grid = GridGain.start(conf);
 
+        System.out.println("Done!");
+
+        System.out.println("----------------------");
+
+
         if (allList) {
             GridCache<String, Map<String, Object>> map = grid.cache("darklist");
             map.globalClearAll();
@@ -354,7 +356,8 @@ public class DarkListUpdate {
         grid.close();
 
         client.close();
-        System.out.println("Barrier: off");
+        System.out.println("Set barrier: off");
+        System.out.println("\nDarklist updated!");
 
 
     }
