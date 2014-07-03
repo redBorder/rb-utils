@@ -60,7 +60,7 @@
                     <appendAssemblyId>false</appendAssemblyId>
                     <archive>
                         <manifest>
-                            <mainClass>net.redborder.storm.gridgain.DarkListUpdate</mainClass>
+                            <mainClass>net.redborder.utils.darklist.DarkListUpdate</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
