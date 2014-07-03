@@ -284,12 +284,28 @@ public class DarkListUpdate {
             } else {
                 Map<String, String> map = new HashMap<String, String>();
                 map.put("darklist_score", nextLine[2].toString());
-                map.put("darklist_lat", nextLine[3].toString());
-                map.put("darklist_long", nextLine[4].toString());
-                map.put("darklist_country", nextLine[5].toString());
+
+                Double scorePercent = Double.parseDouble(nextLine[2].toString());
+
+                if(100>=scorePercent && scorePercent>95){
+                    map.put("darklist_score_name", "Very high");
+                } else if(95>=scorePercent && scorePercent>85){
+                    map.put("darklist_score_name", "High");
+                } else if(85>=scorePercent && scorePercent>70){
+                    map.put("darklist_score_name", "Medium");
+                } else if(70>=scorePercent && scorePercent>50){
+                    map.put("darklist_score_name", "Low");
+                } else if(50>=scorePercent && scorePercent>20){
+                    map.put("darklist_score_name", "Very low");
+                }
+
                 map.put("darklist_category", category.get(Integer.parseInt(nextLine[6])));
                 map.put("darklist_protocol", protocol.get(Integer.parseInt(nextLine[7])));
-                map.put("darklist_last_seen", nextLine[8].toString());
+
+                //map.put("darklist_lat", nextLine[3].toString());
+                //map.put("darklist_long", nextLine[4].toString());
+                //map.put("darklist_country", nextLine[5].toString());
+                //map.put("darklist_last_seen", nextLine[8].toString());
 
                 keysToSave.add(nextLine[1].toString());
 
