@@ -81,11 +81,11 @@ public class Key {
             colorize(Colorize.ANSI_RESET);
             try {
                 grid.close();
-                System.out.println("Cached not found: " + cache);
+                System.out.println("Key not found on cache: " + cache);
 
 
             } catch (Exception eGrid) {
-                System.out.println("Cached not found: " + cache);
+                System.out.println("Key not found on cache: " + cache);
             }
         }
 
