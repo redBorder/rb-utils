@@ -20,6 +20,8 @@ public class Key {
 
     public static void main(String[] args) throws GridException {
 
+
+        Grid grid = null ;
         try {
 
             OptionParser parser = new OptionParser("c::k::");
@@ -44,7 +46,7 @@ public class Key {
                 conf.setCacheConfiguration(cacheConf);
 
 
-                Grid grid = GridGain.start(conf);
+                grid = GridGain.start(conf);
                 GridCache<String, Map<String, Object>> map = null;
 
                 map = grid.cache(cache);
@@ -77,7 +79,7 @@ public class Key {
 
         } catch (Exception ex) {
             colorize(Colorize.ANSI_RESET);
-            System.out.println(ex);
+            grid.close();
         }
 
     }
