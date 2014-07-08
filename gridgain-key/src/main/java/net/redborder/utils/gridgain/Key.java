@@ -18,17 +18,18 @@ import java.util.Map;
  */
 public class Key {
 
-    public static void main(String[] args) throws GridException {
+    public static void main(String[] args) {
 
 
-        Grid grid = null ;
+        Grid grid = null;
+        String cache = null;
+
         try {
 
             OptionParser parser = new OptionParser("c::k::");
 
             OptionSet options = parser.parse(args);
 
-            String cache = null;
 
             if (options.hasArgument("c")) {
                 cache = (String) options.valueOf("c");
@@ -40,7 +41,8 @@ public class Key {
                 GridConfiguration conf = new GridConfiguration();
                 cacheConf.setCacheMode(GridCacheMode.PARTITIONED);
                 cacheConf.setName(cache);
-                cacheConf.setBackups(1);
+                if (cache.equals("darklist"))
+                    cacheConf.setBackups(1);
 
 
                 conf.setCacheConfiguration(cacheConf);
@@ -71,15 +73,20 @@ public class Key {
                     printLine(value.length() + 2);
 
 
-
-
                 }
                 grid.close();
             }
 
         } catch (Exception ex) {
             colorize(Colorize.ANSI_RESET);
-            grid.close();
+            try {
+                grid.close();
+                System.out.println("Cached not found: " + cache);
+
+
+            } catch (Exception eGrid) {
+                System.out.println("Cached not found: " + cache);
+            }
         }
 
     }
