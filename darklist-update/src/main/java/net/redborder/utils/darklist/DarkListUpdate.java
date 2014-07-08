@@ -27,6 +27,8 @@ import org.ho.yaml.Yaml;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -34,10 +36,13 @@ import java.util.zip.GZIPInputStream;
  */
 public class DarkListUpdate {
 
-    private final static String CONFIG_FILE_PATH = "/opt/rb/etc/redBorder-BI/config.yml";
+    private final static String CONFIG_FILE_PATH = "/opt/rb/etc/darklist_config.yml";
 
+
+    static Logger log = Logger.getLogger("DarkListUpdate");
 
     public static void main(String[] args) {
+
 
         try {
 
@@ -48,8 +53,7 @@ public class DarkListUpdate {
             boolean allList = true;
 
 
-
-            CuratorFramework client = CuratorFrameworkFactory.newClient(general.get("zk_connect").toString(), new RetryOneTime(1000));
+            CuratorFramework client = CuratorFrameworkFactory.newClient(general.get("zookeeper").toString(), new RetryOneTime(1000));
 
             client.start();
 
@@ -57,16 +61,15 @@ public class DarkListUpdate {
                 client.create().forPath("/darklist");
             }
 
-
             Random rand = new Random();
             Thread.sleep(rand.nextInt(1000) + 500);
 
             if (client.checkExists().forPath("/darklist/barrier") != null) {
-                System.out.println("The darkListUpdate daemon is running ...");
+                log.log(Level.INFO, "The darkListUpdate daemon is running ...");
                 System.exit(0);
             } else {
                 client.create().withMode(CreateMode.EPHEMERAL).forPath("/darklist/barrier");
-                System.out.println("Start darkListUpdate daemon ...");
+                log.log(Level.INFO, "Start darkListUpdate daemon ...");
             }
 
             if (client.checkExists().forPath("/darklist/lastUpdate") == null) {
@@ -74,40 +77,39 @@ public class DarkListUpdate {
                 String bytes = "" + System.currentTimeMillis() / 1000;
                 client.setData().forPath("/darklist/lastUpdate", bytes.getBytes());
                 allList = true;
-                System.out.println("Saved timestamp - Will download full darkList.");
+                log.log(Level.INFO, "Start darkListUpdate daemon ...");
+                log.log(Level.INFO, "Saved timestamp - Will download full darkList.");
             } else {
 
                 byte[] bytes = client.getData().forPath("/darklist/lastUpdate");
                 long diff = System.currentTimeMillis() / 1000 - Long.parseLong(String.valueOf(new String(bytes, "UTF-8")));
 
-                if (diff > Integer.valueOf(args[0])) {
+                if (diff > (Integer) general.get("timeout")) {
                     allList = true;
-                    System.out.println("Incremental time: " + diff + " (limit: " + Integer.valueOf(args[0]) + ")");
-                    System.out.println("Will download full darkList");
+                    log.log(Level.INFO, "Incremental time: " + diff + " (limit: " +(Integer) general.get("timeout") + ")");
+                    log.log(Level.INFO,"Will download full darkList");
                 } else {
-                    System.out.println("Incremental time: " + diff + " (limit: " + Integer.valueOf(args[0]) + ")");
-                    System.out.println("Will download incremental darkList");
+                    log.log(Level.INFO, "Incremental time: " + diff + " (limit: " +(Integer) general.get("timeout") + ")");
+                    log.log(Level.INFO, "Will download incremental darkList");
                     allList = false;
                 }
 
                 String bytesToUpdate = "" + System.currentTimeMillis() / 1000;
-                System.out.println("Updating timestamp.");
+                log.log(Level.INFO, "Updating timestamp.");
                 client.setData().forPath("/darklist/lastUpdate", bytesToUpdate.getBytes());
             }
 
 
-            System.out.println("Set barrier: on");
+            log.log(Level.INFO, "Set barrier: on");
 
-            System.out.println("----------------------");
-
-            System.out.println("Downloading darklist ...");
+            log.log(Level.INFO, "Downloading darklist ...");
 
             HttpClient httpclient = HttpClients.createDefault();
             HttpPost httppost = new HttpPost("http://darklist.ipviking.net/slice/");
 
             // Request parameters and other properties.
             List<NameValuePair> params = new ArrayList<NameValuePair>(2);
-            params.add(new BasicNameValuePair("apikey", "d57fcc48cc230c6c324ebdab4b0b0e6d7a3e08fd81eb1eaf99f8248e28d640e2"));
+            params.add(new BasicNameValuePair("apikey", general.get("api_key").toString()));
 
             if (allList)
                 params.add(new BasicNameValuePair("method", "full"));
@@ -136,7 +138,7 @@ public class DarkListUpdate {
             output.close();
 
 
-            System.out.println("Done!");
+            log.log(Level.INFO, "Done!");
 
 
             Map<Integer, String> category = new HashMap<Integer, String>();
@@ -273,7 +275,7 @@ public class DarkListUpdate {
             protocol.put(392, "Malware URL");
             protocol.put(393, "Malware domain");
 
-            System.out.println("Parsers CSV data ...");
+            log.log(Level.INFO, "Parsers CSV data ...");
 
 
             Reader readerCsv = new StringReader(output.toString());
@@ -341,15 +343,13 @@ public class DarkListUpdate {
 
             Grid grid = GridGain.start(conf);
 
-            System.out.println("Done!");
-
-            System.out.println("----------------------");
+            log.log(Level.INFO, "Done!");
 
 
             if (allList) {
                 GridCache<String, Map<String, Object>> map = grid.cache("darklist");
                 map.globalClearAll();
-                System.out.println("Cleaning old darkList ...");
+                log.log(Level.INFO,"Cleaning old darkList ...");
                 Thread.sleep(2000);
             }
 
@@ -358,11 +358,11 @@ public class DarkListUpdate {
             Integer partitionDelete = keysToDelete.size() / 4;
 
 
-            System.out.println("Keys by to save: " + keysToSave.size());
-            System.out.println("Keys by to delete: " + keysToDelete.size());
+            log.log(Level.INFO,"Keys by to save: " + keysToSave.size());
+            log.log(Level.INFO,"Keys by to delete: " + keysToDelete.size());
 
-            System.out.println("Keys by thread to save: " + partitionsSave);
-            System.out.println("Keys by thread to delete: " + partitionDelete);
+            log.log(Level.INFO,"Keys by thread to save: " + partitionsSave);
+            log.log(Level.INFO,"Keys by thread to delete: " + partitionDelete);
 
 
             List<GgClientThread> threads = new ArrayList<GgClientThread>();
@@ -376,18 +376,20 @@ public class DarkListUpdate {
             }
 
             for (int i = 0; i < threads.size(); i++) {
-                System.out.println("Waitting thread [" + i + "] ...");
+                log.log(Level.INFO,"Waitting thread [" + i + "] ...");
                 threads.get(i).join();
             }
 
             grid.close();
 
             client.close();
-            System.out.println("Set barrier: off");
-            System.out.println("\nDarklist updated!");
+            log.log(Level.INFO,"Set barrier: off");
+            log.log(Level.INFO,"\nDarklist updated!");
 
-        }catch (Exception ex){
-            System.out.println(ex.toString());
+
+
+        } catch (Exception ex) {
+            log.log(Level.SEVERE,"EXCEPTION! ", ex.toString());
             System.exit(1);
         }
 
