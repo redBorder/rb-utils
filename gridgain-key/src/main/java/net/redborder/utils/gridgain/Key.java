@@ -19,7 +19,6 @@ import java.util.Map;
 public class Key {
 
     public static void main(String[] args) throws GridException {
-        Grid grid = null;
 
         try {
 
@@ -45,72 +44,40 @@ public class Key {
                 conf.setCacheConfiguration(cacheConf);
 
 
-                grid = GridGain.start(conf);
+                Grid grid = GridGain.start(conf);
                 GridCache<String, Map<String, Object>> map = null;
 
-                try {
-                    map = grid.cache(cache);
-                } catch (Exception ex) {
-                    colorize(Colorize.ANSI_RED);
-                    System.out.println("Dont found cache: " + cache + "\n");
-                    colorize(Colorize.ANSI_RESET);
-                    System.exit(1);
-                }
+                map = grid.cache(cache);
 
-                System.out.println();
 
                 if (options.hasArgument("k")) {
-                    try {
-                        String value = " " + map.get((String) options.valueOf("k")).toString() + " ";
+                    String value = " " + map.get((String) options.valueOf("k")).toString() + " ";
 
-                        String head = " Cache: " + cache + "  " + " Key: " + options.valueOf("k") + " ";
-                        printLine(head.length() + 2);
-                        colorize(Colorize.ANSI_CYAN);
-                        System.out.print("|");
-                        colorize(Colorize.ANSI_BLUE);
-                        System.out.print(head);
-                        colorize(Colorize.ANSI_CYAN);
-                        System.out.println("|");
-                        printLine(value.length() + 2);
-                        colorize(Colorize.ANSI_CYAN);
+                    String head = " Cache Key: " + cache + ":" + options.valueOf("k") + " ";
+                    printLine(value.length() + 2);
 
-                        System.out.print("|");
-                        colorize(Colorize.ANSI_BLUE);
-
-                        System.out.print(value);
-                        colorize(Colorize.ANSI_CYAN);
-
-                        System.out.println("|");
-
-                        printLine(value.length() + 2);
-
-                    } catch (Exception ex) {
-                        colorize(Colorize.ANSI_RED);
-                        System.out.print("Dont found key: " + options.valueOf("k").toString());
-                        colorize(Colorize.ANSI_RESET);
-                    }
-
-
-                } else {
-                    colorize(Colorize.ANSI_RED);
-                    System.out.print("You must use -c={cache} -k={value}");
+                    colorize(Colorize.ANSI_BLUE);
+                    System.out.println(head);
                     colorize(Colorize.ANSI_RESET);
-                }
 
-                colorize(Colorize.ANSI_RESET);
-                System.out.println();
+                    printLine(value.length() + 2);
+
+                    colorize(Colorize.ANSI_BLUE);
+                    System.out.println(value);
+                    colorize(Colorize.ANSI_RESET);
+
+                    printLine(value.length() + 2);
+
+
+
+
+                }
                 grid.close();
             }
-            else{
-                colorize(Colorize.ANSI_RED);
-                System.out.println("You must use -c={cache} -k={value}");
-                colorize(Colorize.ANSI_RESET);
-            }
+
         } catch (Exception ex) {
             colorize(Colorize.ANSI_RESET);
             System.out.println(ex);
-
-            grid.close();
         }
 
     }
@@ -120,8 +87,8 @@ public class Key {
         for (int i = 0; i < num; i++) {
             System.out.print("-");
         }
-        System.out.println();
         colorize(Colorize.ANSI_RESET);
+        System.out.println();
     }
 
     public static void colorize(String color) {
