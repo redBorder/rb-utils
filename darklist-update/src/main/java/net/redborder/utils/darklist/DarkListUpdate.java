@@ -65,7 +65,7 @@ public class DarkListUpdate {
             Thread.sleep(rand.nextInt(1000) + 500);
 
             if (client.checkExists().forPath("/darklist/barrier") != null) {
-                log.log(Level.INFO, "The darkListUpdate daemon is running ...");
+                log.log(Level.INFO, "The darkListUpdate daemon is running in other node (locked)");
                 System.exit(0);
             } else {
                 client.create().withMode(CreateMode.EPHEMERAL).forPath("/darklist/barrier");
