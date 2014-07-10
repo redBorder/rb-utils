@@ -40,6 +40,8 @@ public class DarkListUpdate {
 
 
     static Logger log = Logger.getLogger("DarkListUpdate");
+    static CuratorFramework client = null;
+    static Integer timeout=10000;
 
     public static void main(String[] args) {
 
@@ -53,7 +55,7 @@ public class DarkListUpdate {
             boolean allList = true;
 
 
-            CuratorFramework client = CuratorFrameworkFactory.newClient(general.get("zookeeper").toString(), new RetryOneTime(1000));
+            client = CuratorFrameworkFactory.newClient(general.get("zookeeper").toString(), new RetryOneTime(1000));
 
             client.start();
 
@@ -84,7 +86,8 @@ public class DarkListUpdate {
                 byte[] bytes = client.getData().forPath("/darklist/lastUpdate");
                 long diff = System.currentTimeMillis() / 1000 - Long.parseLong(String.valueOf(new String(bytes, "UTF-8")));
 
-                if (diff > (Integer) general.get("timeout")) {
+                timeout = (Integer) general.get("timeout");
+                if (diff > timeout) {
                     allList = true;
                     log.log(Level.INFO, "Incremental time: " + diff + " (limit: " +(Integer) general.get("timeout") + ")");
                     log.log(Level.INFO,"Will download full darkList");
@@ -278,6 +281,7 @@ public class DarkListUpdate {
             log.log(Level.INFO, "Parsers CSV data ...");
 
 
+
             Reader readerCsv = new StringReader(output.toString());
 
             CSVReader reader = new CSVReader(readerCsv);
@@ -308,7 +312,7 @@ public class DarkListUpdate {
                         map.put("darklist_score_name", "Medium");
                     } else if (70 >= scorePercent && scorePercent > 50) {
                         map.put("darklist_score_name", "Low");
-                    } else if (50 >= scorePercent && scorePercent > 20) {
+                    } else if (50 >= scorePercent && scorePercent >= 20) {
                         map.put("darklist_score_name", "Very low");
                     }
 
@@ -327,6 +331,18 @@ public class DarkListUpdate {
                 }
             }
 
+            log.log(Level.INFO, "Done!");
+
+
+            Integer partitionsSave = keysToSave.size() / 4;
+            Integer partitionDelete = keysToDelete.size() / 4;
+
+
+            log.log(Level.INFO,"Keys by to save: " + keysToSave.size());
+            log.log(Level.INFO,"Keys by to delete: " + keysToDelete.size());
+
+            log.log(Level.INFO,"Keys by thread to save: " + partitionsSave);
+            log.log(Level.INFO,"Keys by thread to delete: " + partitionDelete);
 
             GridCacheConfiguration cacheConf = new GridCacheConfiguration();
             cacheConf.setDistributionMode(GridCacheDistributionMode.CLIENT_ONLY);
@@ -343,7 +359,6 @@ public class DarkListUpdate {
 
             Grid grid = GridGain.start(conf);
 
-            log.log(Level.INFO, "Done!");
 
 
             if (allList) {
@@ -352,17 +367,6 @@ public class DarkListUpdate {
                 log.log(Level.INFO,"Cleaning old darkList ...");
                 Thread.sleep(2000);
             }
-
-
-            Integer partitionsSave = keysToSave.size() / 4;
-            Integer partitionDelete = keysToDelete.size() / 4;
-
-
-            log.log(Level.INFO,"Keys by to save: " + keysToSave.size());
-            log.log(Level.INFO,"Keys by to delete: " + keysToDelete.size());
-
-            log.log(Level.INFO,"Keys by thread to save: " + partitionsSave);
-            log.log(Level.INFO,"Keys by thread to delete: " + partitionDelete);
 
 
             List<GgClientThread> threads = new ArrayList<GgClientThread>();
@@ -390,6 +394,13 @@ public class DarkListUpdate {
 
         } catch (Exception ex) {
             log.log(Level.SEVERE,"EXCEPTION! ", ex.toString());
+            String bytesToUpdate = "" + (timeout+timeout);
+            try {
+                client.setData().forPath("/darklist/lastUpdate", bytesToUpdate.getBytes());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            client.close();
             System.exit(1);
         }
 
