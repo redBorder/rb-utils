@@ -52,6 +52,8 @@ public class DarkListUpdate {
 
             Map<String, Object> general = (Map<String, Object>) configMap.get("general");
 
+            String time = "";
+
             boolean allList = true;
 
 
@@ -67,7 +69,8 @@ public class DarkListUpdate {
             Thread.sleep(rand.nextInt(1000) + 500);
 
             if (client.checkExists().forPath("/darklist/barrier") != null) {
-                log.log(Level.INFO, "The darkListUpdate daemon is running in other node (locked)");
+                byte[] host = client.getData().forPath("/darklist/barrier");
+                log.log(Level.INFO, "The darkListUpdate daemon is running in "+ new String(host, "UTF-8")+" (locked) ");
                 System.exit(0);
             } else {
                 client.create().withMode(CreateMode.EPHEMERAL).forPath("/darklist/barrier");
@@ -77,7 +80,7 @@ public class DarkListUpdate {
             if (client.checkExists().forPath("/darklist/lastUpdate") == null) {
                 client.create().creatingParentsIfNeeded().forPath("/darklist/lastUpdate");
                 String bytes = "" + System.currentTimeMillis() / 1000;
-                client.setData().forPath("/darklist/lastUpdate", bytes.getBytes());
+                time=bytes;
                 allList = true;
                 log.log(Level.INFO, "Start darkListUpdate daemon ...");
                 log.log(Level.INFO, "Saved timestamp - Will download full darkList.");
@@ -98,8 +101,9 @@ public class DarkListUpdate {
                 }
 
                 String bytesToUpdate = "" + System.currentTimeMillis() / 1000;
+                time=bytesToUpdate;
                 log.log(Level.INFO, "Updating timestamp.");
-                client.setData().forPath("/darklist/lastUpdate", bytesToUpdate.getBytes());
+
             }
 
 
@@ -395,20 +399,24 @@ public class DarkListUpdate {
 
             grid.close();
 
+            client.setData().forPath("/darklist/lastUpdate", time.getBytes());
+
             client.close();
+
             log.log(Level.INFO,"Set barrier: off");
             log.log(Level.INFO,"\nDarklist updated!");
 
 
 
         } catch (Exception ex) {
-            log.log(Level.SEVERE,"EXCEPTION! ", ex.toString());
-            String bytesToUpdate = "" + (timeout+timeout);
+            log.log(Level.SEVERE,"EXCEPTION! " + ex.toString());
+            String time = "" + (timeout+timeout);
             try {
-                client.setData().forPath("/darklist/lastUpdate", bytesToUpdate.getBytes());
+                client.setData().forPath("/darklist/lastUpdate", time.getBytes());
             } catch (Exception e) {
                 e.printStackTrace();
             }
+
             client.close();
             System.exit(1);
         }
