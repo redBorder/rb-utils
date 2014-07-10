@@ -305,15 +305,15 @@ public class DarkListUpdate {
                     Double scorePercent = Double.parseDouble(nextLine[2].toString());
 
                     if (100 >= scorePercent && scorePercent > 95) {
-                        map.put("darklist_score_name", "Very high");
+                        map.put("darklist_score_name", "very high");
                     } else if (95 >= scorePercent && scorePercent > 85) {
-                        map.put("darklist_score_name", "High");
+                        map.put("darklist_score_name", "high");
                     } else if (85 >= scorePercent && scorePercent > 70) {
-                        map.put("darklist_score_name", "Medium");
+                        map.put("darklist_score_name", "medium");
                     } else if (70 >= scorePercent && scorePercent > 50) {
-                        map.put("darklist_score_name", "Low");
+                        map.put("darklist_score_name", "low");
                     } else if (50 >= scorePercent && scorePercent >= 20) {
-                        map.put("darklist_score_name", "Very low");
+                        map.put("darklist_score_name", "very low");
                     }
 
                     if(category.get(Integer.parseInt(nextLine[6]))!=null) {
