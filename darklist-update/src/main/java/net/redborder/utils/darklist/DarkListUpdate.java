@@ -316,8 +316,17 @@ public class DarkListUpdate {
                         map.put("darklist_score_name", "Very low");
                     }
 
-                    map.put("darklist_category", category.get(Integer.parseInt(nextLine[6])));
-                    map.put("darklist_protocol", protocol.get(Integer.parseInt(nextLine[7])));
+                    if(category.get(Integer.parseInt(nextLine[6]))!=null) {
+                        map.put("darklist_category", category.get(Integer.parseInt(nextLine[6])));
+                    }else{
+                        map.put("darklist_category", "Unknown: " + nextLine[6]);
+                    }
+
+                    if(protocol.get(Integer.parseInt(nextLine[7]))!=null) {
+                        map.put("darklist_protocol", protocol.get(Integer.parseInt(nextLine[7])));
+                    }else{
+                        map.put("darklist_protocol", "Unknown: " + nextLine[7]);
+                    }
 
                     //map.put("darklist_lat", nextLine[3].toString());
                     //map.put("darklist_long", nextLine[4].toString());
