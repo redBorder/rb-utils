@@ -41,7 +41,7 @@ public class DarkListUpdate {
 
     static Logger log = Logger.getLogger("DarkListUpdate");
     static CuratorFramework client = null;
-    static Integer timeout=10000;
+    static Integer timeout = 10000;
 
     public static void main(String[] args) {
 
@@ -70,7 +70,7 @@ public class DarkListUpdate {
 
             if (client.checkExists().forPath("/darklist/barrier") != null) {
                 byte[] host = client.getData().forPath("/darklist/barrier");
-                log.log(Level.INFO, "The darkListUpdate daemon is running in "+ new String(host, "UTF-8")+" (locked) ");
+                log.log(Level.INFO, "The darkListUpdate daemon is running in " + new String(host, "UTF-8") + " (locked) ");
                 System.exit(0);
             } else {
                 client.create().withMode(CreateMode.EPHEMERAL).forPath("/darklist/barrier");
@@ -80,7 +80,7 @@ public class DarkListUpdate {
             if (client.checkExists().forPath("/darklist/lastUpdate") == null) {
                 client.create().creatingParentsIfNeeded().forPath("/darklist/lastUpdate");
                 String bytes = "" + System.currentTimeMillis() / 1000;
-                time=bytes;
+                time = bytes;
                 allList = true;
                 log.log(Level.INFO, "Start darkListUpdate daemon ...");
                 log.log(Level.INFO, "Saved timestamp - Will download full darkList.");
@@ -92,16 +92,16 @@ public class DarkListUpdate {
                 timeout = (Integer) general.get("timeout");
                 if (diff > timeout) {
                     allList = true;
-                    log.log(Level.INFO, "Incremental time: " + diff + " (limit: " +(Integer) general.get("timeout") + ")");
-                    log.log(Level.INFO,"Will download full darkList");
+                    log.log(Level.INFO, "Incremental time: " + diff + " (limit: " + (Integer) general.get("timeout") + ")");
+                    log.log(Level.INFO, "Will download full darkList");
                 } else {
-                    log.log(Level.INFO, "Incremental time: " + diff + " (limit: " +(Integer) general.get("timeout") + ")");
+                    log.log(Level.INFO, "Incremental time: " + diff + " (limit: " + (Integer) general.get("timeout") + ")");
                     log.log(Level.INFO, "Will download incremental darkList");
                     allList = false;
                 }
 
                 String bytesToUpdate = "" + System.currentTimeMillis() / 1000;
-                time=bytesToUpdate;
+                time = bytesToUpdate;
                 log.log(Level.INFO, "Updating timestamp.");
 
             }
@@ -109,43 +109,7 @@ public class DarkListUpdate {
 
             log.log(Level.INFO, "Set barrier: on");
 
-            log.log(Level.INFO, "Downloading darklist ...");
 
-            HttpClient httpclient = HttpClients.createDefault();
-            HttpPost httppost = new HttpPost("http://darklist.ipviking.net/slice/");
-
-            // Request parameters and other properties.
-            List<NameValuePair> params = new ArrayList<NameValuePair>(2);
-            params.add(new BasicNameValuePair("apikey", general.get("api_key").toString()));
-
-            if (allList)
-                params.add(new BasicNameValuePair("method", "full"));
-
-
-            httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
-
-            //Execute and get the response.
-            HttpResponse response = httpclient.execute(httppost);
-            HttpEntity entity = response.getEntity();
-
-            InputStream instream = entity.getContent();
-
-
-            GZIPInputStream in = new GZIPInputStream(instream);
-
-
-            ByteArrayOutputStream output = new ByteArrayOutputStream();
-            // Transfer bytes from the compressed file to the output file
-            byte[] buffer = new byte[1024];
-            int len;
-            while ((len = in.read(buffer)) > 0) {
-                output.write(buffer, 0, len);
-            }
-            in.close();
-            output.close();
-
-
-            log.log(Level.INFO, "Done!");
 
 
             Map<Integer, String> category = new HashMap<Integer, String>();
@@ -284,21 +248,15 @@ public class DarkListUpdate {
 
             log.log(Level.INFO, "Parsers CSV data ...");
 
-
-
-            Reader readerCsv = new StringReader(output.toString());
-
-            CSVReader reader = new CSVReader(readerCsv);
-            List<String> keysToDelete = new LinkedList<String>();
-            List<String[]> csv = reader.readAll();
+            List<String[]> csvAll = outPutString(general, allList);
 
             List<Map> dataToSave = new ArrayList<Map>();
             List<String> keysToSave = new ArrayList<String>();
+            List<String> keysToDelete = new ArrayList<String>();
 
+            for (int i = 1; i < csvAll.size(); i++) {
 
-            for (int i = 1; i < csv.size(); i++) {
-
-                String[] nextLine = csv.get(i);
+                String[] nextLine = csvAll.get(i);
 
                 if (nextLine[0].equals("-")) {
                     keysToDelete.add(nextLine[1]);
@@ -320,25 +278,19 @@ public class DarkListUpdate {
                         map.put("darklist_score_name", "very low");
                     }
 
-                    if(category.get(Integer.parseInt(nextLine[6]))!=null) {
+                    if (category.get(Integer.parseInt(nextLine[6])) != null) {
                         map.put("darklist_category", category.get(Integer.parseInt(nextLine[6])));
-                    }else{
+                    } else {
                         map.put("darklist_category", "Unknown: " + nextLine[6]);
                     }
 
-                    if(protocol.get(Integer.parseInt(nextLine[7]))!=null) {
+                    if (protocol.get(Integer.parseInt(nextLine[7])) != null) {
                         map.put("darklist_protocol", protocol.get(Integer.parseInt(nextLine[7])));
-                    }else{
+                    } else {
                         map.put("darklist_protocol", "Unknown: " + nextLine[7]);
                     }
 
-                    //map.put("darklist_lat", nextLine[3].toString());
-                    //map.put("darklist_long", nextLine[4].toString());
-                    //map.put("darklist_country", nextLine[5].toString());
-                    //map.put("darklist_last_seen", nextLine[8].toString());
-
                     keysToSave.add(nextLine[1].toString());
-
                     dataToSave.add(map);
 
                 }
@@ -351,33 +303,30 @@ public class DarkListUpdate {
             Integer partitionDelete = keysToDelete.size() / 4;
 
 
-            log.log(Level.INFO,"Keys by to save: " + keysToSave.size());
-            log.log(Level.INFO,"Keys by to delete: " + keysToDelete.size());
+            log.log(Level.INFO, "Keys by to save: " + keysToSave.size());
+            log.log(Level.INFO, "Keys by to delete: " + keysToDelete.size());
 
-            log.log(Level.INFO,"Keys by thread to save: " + partitionsSave);
-            log.log(Level.INFO,"Keys by thread to delete: " + partitionDelete);
+            log.log(Level.INFO, "Keys by thread to save: " + partitionsSave);
+            log.log(Level.INFO, "Keys by thread to delete: " + partitionDelete);
 
             GridCacheConfiguration cacheConf = new GridCacheConfiguration();
             cacheConf.setDistributionMode(GridCacheDistributionMode.CLIENT_ONLY);
 
-
             GridConfiguration conf = new GridConfiguration();
             cacheConf.setCacheMode(GridCacheMode.PARTITIONED);
             cacheConf.setName("darklist");
-            cacheConf.setBackups(1);
-
+            Integer backups = (Integer) general.get("backups");
+            cacheConf.setBackups(backups);
 
             conf.setCacheConfiguration(cacheConf);
 
-
             Grid grid = GridGain.start(conf);
-
 
 
             if (allList) {
                 GridCache<String, Map<String, Object>> map = grid.cache("darklist");
                 map.globalClearAll();
-                log.log(Level.INFO,"Cleaning old darkList ...");
+                log.log(Level.INFO, "Cleaning old darkList ...");
                 Thread.sleep(2000);
             }
 
@@ -393,7 +342,7 @@ public class DarkListUpdate {
             }
 
             for (int i = 0; i < threads.size(); i++) {
-                log.log(Level.INFO,"Waitting thread [" + i + "] ...");
+                log.log(Level.INFO, "Waitting thread [" + i + "] ...");
                 threads.get(i).join();
             }
 
@@ -403,14 +352,13 @@ public class DarkListUpdate {
 
             client.close();
 
-            log.log(Level.INFO,"Set barrier: off");
-            log.log(Level.INFO,"\nDarklist updated!");
-
+            log.log(Level.INFO, "Set barrier: off");
+            log.log(Level.INFO, "\nDarklist updated!");
 
 
         } catch (Exception ex) {
-            log.log(Level.SEVERE,"EXCEPTION! " + ex.toString());
-            String time = "" + (timeout+timeout);
+            log.log(Level.SEVERE, "EXCEPTION! " + ex.toString());
+            String time = "" + (timeout + timeout);
             try {
                 client.setData().forPath("/darklist/lastUpdate", time.getBytes());
             } catch (Exception e) {
@@ -421,5 +369,57 @@ public class DarkListUpdate {
             System.exit(1);
         }
 
+    }
+
+    private static List<String[]> outPutString(Map<String, Object> general, boolean allList) throws IOException {
+        log.log(Level.INFO, "Downloading darklist ...");
+        HttpClient httpclient = HttpClients.createDefault();
+        HttpPost httppost = new HttpPost("http://darklist.ipviking.net/slice/");
+
+        // Request parameters and other properties.
+        List<NameValuePair> params = new ArrayList<NameValuePair>(2);
+        params.add(new BasicNameValuePair("apikey", general.get("api_key").toString()));
+
+        if (allList)
+            params.add(new BasicNameValuePair("method", "full"));
+
+
+        httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
+
+        //Execute and get the response.
+        HttpResponse response = httpclient.execute(httppost);
+        HttpEntity entity = response.getEntity();
+
+        InputStream instream = entity.getContent();
+
+
+        GZIPInputStream in = new GZIPInputStream(instream);
+
+
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        // Transfer bytes from the compressed file to the output file
+        byte[] buffer = new byte[1024];
+        int len;
+        while ((len = in.read(buffer)) > 0) {
+            output.write(buffer, 0, len);
+        }
+        in.close();
+
+        output.close();
+
+        System.gc();
+        log.log(Level.INFO, "Done!");
+        return csvAll(output.toString());
+
+    }
+
+    static private List<String[]> csvAll(String out) throws IOException {
+        List<String[]> csvAll = null;
+
+        Reader readerCsv = new StringReader(out);
+        CSVReader reader = new CSVReader(readerCsv);
+        csvAll = reader.readAll();
+
+        return csvAll;
     }
 }

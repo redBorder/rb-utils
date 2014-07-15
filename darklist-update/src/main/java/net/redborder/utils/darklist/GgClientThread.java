@@ -79,7 +79,7 @@ public class GgClientThread extends Thread {
         try {
             map.putAll(mapToSave);
             System.out.println("Compacting data on [" +_index + "] ...");
-            //map.compactAll();
+            map.compactAll();
         } catch (GridException e) {
             e.printStackTrace();
         }
