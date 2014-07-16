@@ -110,8 +110,6 @@ public class DarkListUpdate {
             log.log(Level.INFO, "Set barrier: on");
 
 
-
-
             Map<Integer, String> category = new HashMap<Integer, String>();
             category.put(0, "<none>");
             category.put(1, "explicit Content");
@@ -246,67 +244,6 @@ public class DarkListUpdate {
             protocol.put(392, "malware URL");
             protocol.put(393, "malware domain");
 
-            List<String[]> csvAll = outPutString(general, allList);
-
-            List<Map> dataToSave = new ArrayList<Map>();
-            List<String> keysToSave = new ArrayList<String>();
-            List<String> keysToDelete = new ArrayList<String>();
-
-            for (int i = 1; i < csvAll.size(); i++) {
-
-                String[] nextLine = csvAll.get(i);
-
-                if (nextLine[0].equals("-")) {
-                    keysToDelete.add(nextLine[1]);
-                } else {
-                    Map<String, String> map = new HashMap<String, String>();
-                    map.put("darklist_score", nextLine[2].toString());
-
-                    Double scorePercent = Double.parseDouble(nextLine[2].toString());
-
-                    if (100 >= scorePercent && scorePercent > 95) {
-                        map.put("darklist_score_name", "very high");
-                    } else if (95 >= scorePercent && scorePercent > 85) {
-                        map.put("darklist_score_name", "high");
-                    } else if (85 >= scorePercent && scorePercent > 70) {
-                        map.put("darklist_score_name", "medium");
-                    } else if (70 >= scorePercent && scorePercent > 50) {
-                        map.put("darklist_score_name", "low");
-                    } else if (50 >= scorePercent && scorePercent >= 20) {
-                        map.put("darklist_score_name", "very low");
-                    }
-
-                    if (category.get(Integer.parseInt(nextLine[6])) != null) {
-                        map.put("darklist_category", category.get(Integer.parseInt(nextLine[6])));
-                    } else {
-                        map.put("darklist_category", "Unknown: " + nextLine[6]);
-                    }
-
-                    if (protocol.get(Integer.parseInt(nextLine[7])) != null) {
-                        map.put("darklist_protocol", protocol.get(Integer.parseInt(nextLine[7])));
-                    } else {
-                        map.put("darklist_protocol", "Unknown: " + nextLine[7]);
-                    }
-
-                    keysToSave.add(nextLine[1].toString());
-                    dataToSave.add(map);
-
-                }
-            }
-
-            log.log(Level.INFO, "Done!");
-
-
-            Integer partitionsSave = keysToSave.size() / 4;
-            Integer partitionDelete = keysToDelete.size() / 4;
-
-
-            log.log(Level.INFO, "Keys by to save: " + keysToSave.size());
-            log.log(Level.INFO, "Keys by to delete: " + keysToDelete.size());
-
-            log.log(Level.INFO, "Keys by thread to save: " + partitionsSave);
-            log.log(Level.INFO, "Keys by thread to delete: " + partitionDelete);
-
             GridCacheConfiguration cacheConf = new GridCacheConfiguration();
             cacheConf.setDistributionMode(GridCacheDistributionMode.CLIENT_ONLY);
 
@@ -324,24 +261,107 @@ public class DarkListUpdate {
             if (allList) {
                 GridCache<String, Map<String, Object>> map = grid.cache("darklist");
                 map.globalClearAll();
-                log.log(Level.INFO, "Cleaning old darkList ...");
+                System.out.println("Cleaning old darkList ...");
                 Thread.sleep(2000);
             }
 
+            String out = outPutString(general, allList);
 
-            List<GgClientThread> threads = new ArrayList<GgClientThread>();
+            Reader readerCsv = new StringReader(out);
+            BufferedReader buffer = new BufferedReader(readerCsv);
 
-            for (int j = 0; j < 4; j++) {
+            String aline = buffer.readLine();
 
-                GgClientThread ggThread = new GgClientThread(j, partitionsSave,
-                        keysToSave, dataToSave, partitionDelete, keysToDelete, grid);
-                ggThread.start();
-                threads.add(ggThread);
-            }
 
-            for (int i = 0; i < threads.size(); i++) {
-                log.log(Level.INFO, "Waitting thread [" + i + "] ...");
-                threads.get(i).join();
+            while ((aline = buffer.readLine()) != null) {
+                System.out.println("Parsers CSV data ...");
+                List<String> toParse = new ArrayList<String>();
+
+                toParse.add(aline);
+
+                for (int i = 0; i < 500000; i++) {
+                    String line = buffer.readLine();
+                    if (line != null)
+                        toParse.add(line);
+                }
+
+                List<String[]> csvAll = csvAll(toParse);
+
+                List<Map> dataToSave = new ArrayList<Map>();
+                List<String> keysToSave = new ArrayList<String>();
+                List<String> keysToDelete = new ArrayList<String>();
+
+                for (int i = 1; i < csvAll.size(); i++) {
+
+                    String[] nextLine = csvAll.get(i);
+
+                    if (nextLine[0].equals("-")) {
+                        keysToDelete.add(nextLine[1]);
+                    } else {
+                        Map<String, String> map = new HashMap<String, String>();
+                        map.put("darklist_score", nextLine[2].toString());
+
+                        Double scorePercent = Double.parseDouble(nextLine[2].toString());
+
+                        if (100 >= scorePercent && scorePercent > 95) {
+                            map.put("darklist_score_name", "very high");
+                        } else if (95 >= scorePercent && scorePercent > 85) {
+                            map.put("darklist_score_name", "high");
+                        } else if (85 >= scorePercent && scorePercent > 70) {
+                            map.put("darklist_score_name", "medium");
+                        } else if (70 >= scorePercent && scorePercent > 50) {
+                            map.put("darklist_score_name", "low");
+                        } else if (50 >= scorePercent && scorePercent >= 20) {
+                            map.put("darklist_score_name", "very low");
+                        }
+
+                        if (category.get(Integer.parseInt(nextLine[6])) != null) {
+                            map.put("darklist_category", category.get(Integer.parseInt(nextLine[6])));
+                        } else {
+                            map.put("darklist_category", "Unknown: " + nextLine[6]);
+                        }
+
+                        if (protocol.get(Integer.parseInt(nextLine[7])) != null) {
+                            map.put("darklist_protocol", protocol.get(Integer.parseInt(nextLine[7])));
+                        } else {
+                            map.put("darklist_protocol", "Unknown: " + nextLine[7]);
+                        }
+
+                        keysToSave.add(nextLine[1].toString());
+                        dataToSave.add(map);
+
+                    }
+                }
+
+                System.out.println("Done!");
+
+
+                Integer partitionsSave = keysToSave.size() / 2;
+                Integer partitionDelete = keysToDelete.size() / 2;
+
+
+                System.out.println("Keys by to save: " + keysToSave.size());
+                System.out.println("Keys by to delete: " + keysToDelete.size());
+
+                //System.out.println( "Keys by thread to save: " + partitionsSave);
+                //System.out.println( "Keys by thread to delete: " + partitionDelete);
+
+
+                List<GgClientThread> threads = new ArrayList<GgClientThread>();
+
+                for (int j = 0; j < 2; j++) {
+
+                    GgClientThread ggThread = new GgClientThread(j, partitionsSave,
+                            keysToSave, dataToSave, partitionDelete, keysToDelete, grid);
+                    ggThread.start();
+                    threads.add(ggThread);
+                }
+
+                for (int i = 0; i < threads.size(); i++) {
+                    System.out.println("Waitting thread [" + i + "] ...");
+                    threads.get(i).join();
+                }
+
             }
 
             grid.close();
@@ -350,12 +370,13 @@ public class DarkListUpdate {
 
             client.close();
 
-            log.log(Level.INFO, "Set barrier: off");
-            log.log(Level.INFO, "\nDarklist updated!");
+            System.out.println("Set barrier: off");
+            System.out.println("\nDarklist updated!");
 
 
         } catch (Exception ex) {
             log.log(Level.SEVERE, "EXCEPTION! " + ex.toString());
+            ex.printStackTrace();
             String time = "" + (timeout + timeout);
             try {
                 client.setData().forPath("/darklist/lastUpdate", time.getBytes());
@@ -369,8 +390,8 @@ public class DarkListUpdate {
 
     }
 
-    private static List<String[]> outPutString(Map<String, Object> general, boolean allList) throws IOException {
-        log.log(Level.INFO, "Downloading darklist ...");
+    private static String outPutString(Map<String, Object> general, boolean allList) throws IOException {
+        System.out.println("Downloading darklist ...");
         HttpClient httpclient = HttpClients.createDefault();
         HttpPost httppost = new HttpPost("http://darklist.ipviking.net/slice/");
 
@@ -406,18 +427,17 @@ public class DarkListUpdate {
         output.close();
 
         System.gc();
-        log.log(Level.INFO, "Done!");
-        return csvAll(output.toString());
+        System.out.println("Done!");
+        return output.toString();
 
     }
 
-    static private List<String[]> csvAll(String out) throws IOException {
-        List<String[]> csvAll = null;
-
-        Reader readerCsv = new StringReader(out);
-        log.log(Level.INFO, "Parsers CSV data ...");
-        CSVReader reader = new CSVReader(readerCsv);
-        csvAll = reader.readAll();
+    static private List<String[]> csvAll(List<String> toParse) throws IOException {
+        List<String[]> csvAll = new ArrayList<String[]>();
+        for (String aline : toParse) {
+            String[] csv = aline.split(",");
+            csvAll.add(csv);
+        }
 
         return csvAll;
     }

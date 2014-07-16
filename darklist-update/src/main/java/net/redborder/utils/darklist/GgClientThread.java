@@ -36,14 +36,10 @@ public class GgClientThread extends Thread {
         _client = client;
 
         map = client.cache("darklist");
-
-
     }
 
 
     public void run() {
-
-        int porcent = 0;
 
         if (_toDelete != 0) {
             System.out.println("Deleting : [ " + (_index * _toDelete) + " - " + (_toDelete * (_index + 1) - 1) + " ] -> " + new Date().toString());
@@ -57,29 +53,19 @@ public class GgClientThread extends Thread {
         } else
             System.out.println("Nothing to delete!");
 
-
         Map<String, Map<String, Object>> mapToSave = new HashMap<String, Map<String, Object>>();
 
-
         System.out.println("Saving : [ " + (_index * _toSave) + " - " + (_toSave * (_index + 1) - 1) + " ] -> " + new Date().toString());
-        porcent = 0;
 
         for (int i = (_index * _toSave); i < _toSave * (_index + 1); i++) {
-        /*
-            if (i == (_toSave * (_index + 1) * porcent / 100) + (_index * _toSave)) {
-                System.out.println(_keyToSave.get(i) + " -- " + new Date().toString() + " -- [ " + _index + " ] -- Intervalo:" + " [ " + i + " - " + (_toSave * (_index + 1) - 1) + " ] " + "-> " + porcent + " %");
-                porcent++;
-            }
-            */
-
             mapToSave.put(_keyToSave.get(i), _dataToSave.get(i));
         }
 
-
         try {
             map.putAll(mapToSave);
-            System.out.println("Compacting data on [" +_index + "] ...");
-            map.compactAll();
+            System.out.println("Saved: " + mapToSave.size());
+            //System.out.println("Compacting data on [" +_index + "] ...");
+            //map.compactAll();
         } catch (GridException e) {
             e.printStackTrace();
         }
