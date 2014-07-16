@@ -246,8 +246,6 @@ public class DarkListUpdate {
             protocol.put(392, "malware URL");
             protocol.put(393, "malware domain");
 
-            log.log(Level.INFO, "Parsers CSV data ...");
-
             List<String[]> csvAll = outPutString(general, allList);
 
             List<Map> dataToSave = new ArrayList<Map>();
@@ -417,6 +415,7 @@ public class DarkListUpdate {
         List<String[]> csvAll = null;
 
         Reader readerCsv = new StringReader(out);
+        log.log(Level.INFO, "Parsers CSV data ...");
         CSVReader reader = new CSVReader(readerCsv);
         csvAll = reader.readAll();
 
