@@ -31,7 +31,7 @@ public class SiddhiStream implements Serializable {
             streamDefinition.attribute(parameterName.toLowerCase(), Attribute.Type.LONG);
         } else if(type.contains("string")){
             streamDefinition.attribute(parameterName.toLowerCase(), Attribute.Type.STRING);
-        } else if(type.contains("int")){
+        } else if(type.contains("int") || type.contains("integer")){
             streamDefinition.attribute(parameterName.toLowerCase(), Attribute.Type.INT);
         } else if(type.contains("double")){
             streamDefinition.attribute(parameterName.toLowerCase(), Attribute.Type.DOUBLE);

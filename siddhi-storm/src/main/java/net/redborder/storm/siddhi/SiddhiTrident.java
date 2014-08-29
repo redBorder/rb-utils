@@ -36,8 +36,6 @@ public class SiddhiTrident extends BaseFunction {
 
     public SiddhiTrident(SiddhiExecutionPlan executionPlan) {
         _executionPlan = executionPlan;
-        _inputStreams = new ArrayList<StreamDefinition>();
-        _inputHandler = new ArrayList<InputHandler>();
     }
 
     @Override
@@ -45,6 +43,9 @@ public class SiddhiTrident extends BaseFunction {
 
         boolean existInputStream = false;
         boolean existOutputStream = false;
+
+        _inputStreams = new ArrayList<StreamDefinition>();
+        _inputHandler = new ArrayList<InputHandler>();
 
         SiddhiConfiguration configuration = new SiddhiConfiguration();
         configuration.setDistributedProcessing(true);
