@@ -10,9 +10,9 @@
 
     <repositories>
         <repository>
-            <id>wso2-maven2-repository</id>
-            <name>WSO2 Maven2 Repository</name>
-            <url>scp://dist.wso2.org/home/httpd/dist.wso2.org/maven2/</url>
+            <id>Jenkins</id>
+            <name>redBorder-repo</name>
+            <url>http://jenkins:8080/plugin/repository/everything</url>
         </repository>
     </repositories>
 
