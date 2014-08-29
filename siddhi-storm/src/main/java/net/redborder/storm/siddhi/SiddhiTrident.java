@@ -43,8 +43,12 @@ public class SiddhiTrident extends BaseFunction {
                 .addParameter("src", "string")
                 .addParameter("bytes", "int")
                 .buildStream()
-                .addQuery("from streamA[src == '192.168.1.100' and bytes > 150] select src, bytes insert into outStream")
+                .addQuery("from streamA[src == '192.168.1.100' and bytes > 150] select src, bytes insert into windowStream")
+                .addQuery("from windowStream#window.time(1 min) select avg(bytes) as avgBytes, max(bytes) as maxBytes, min(bytes) as minBytes, src, bytes insert into outStream for current-events")
                 .setOutputStreamName("outStream")
+                .addOutPutEventName("avgBytes")
+                .addOutPutEventName("maxBytes")
+                .addOutPutEventName("minBytes")
                 .addOutPutEventName("src")
                 .addOutPutEventName("bytes")
                 .buildOutPutStream();
