@@ -8,7 +8,6 @@ import org.wso2.siddhi.core.query.output.callback.QueryCallback;
 import org.wso2.siddhi.core.stream.input.InputHandler;
 import org.wso2.siddhi.query.api.definition.Attribute;
 import org.wso2.siddhi.query.api.definition.StreamDefinition;
-import org.wso2.siddhi.query.api.query.Query;
 import org.wso2.siddhi.query.compiler.exception.SiddhiParserException;
 import storm.trident.operation.BaseFunction;
 import storm.trident.operation.TridentCollector;
@@ -26,7 +25,6 @@ import java.util.Map;
 public class SiddhiTrident extends BaseFunction {
 
     transient SiddhiManager _siddhiManager;
-    SiddhiExecutionPlan _executionPlan;
     List<InputHandler> _inputHandler;
     List<StreamDefinition> _inputStreams;
     String _queryReference;
@@ -34,12 +32,22 @@ public class SiddhiTrident extends BaseFunction {
     private TridentCollector _collector;
 
 
-    public SiddhiTrident(SiddhiExecutionPlan executionPlan) {
-        _executionPlan = executionPlan;
-    }
 
     @Override
     public void prepare(java.util.Map conf, storm.trident.operation.TridentOperationContext context) {
+
+        final SiddhiExecutionPlan  executionPlan = new SiddhiExecutionPlan("stormTest");
+
+        executionPlan
+                .newStream("streamA", true)
+                .addParameter("src", "string")
+                .addParameter("bytes", "int")
+                .buildStream()
+                .addQuery("from streamA[src == '192.168.1.100' and bytes > 150] select src, bytes insert into outStream")
+                .setOutputStreamName("outStream")
+                .addOutPutEventName("src")
+                .addOutPutEventName("bytes")
+                .buildOutPutStream();
 
         boolean existInputStream = false;
         boolean existOutputStream = false;
@@ -49,17 +57,17 @@ public class SiddhiTrident extends BaseFunction {
 
         SiddhiConfiguration configuration = new SiddhiConfiguration();
         configuration.setDistributedProcessing(true);
-        configuration.setQueryPlanIdentifier(_executionPlan._hazelCastInstance);
+        configuration.setQueryPlanIdentifier(executionPlan._hazelCastInstance);
 
          _siddhiManager = new SiddhiManager(configuration);
 
 
-        if (_executionPlan.inputStreamName == null) {
+        if (executionPlan.inputStreamName == null) {
             System.out.println("You must use inputStreamName on config");
             System.exit(1);
         }
 
-        for (SiddhiStream stream : _executionPlan.streams.values()) {
+        for (SiddhiStream stream : executionPlan.streams.values()) {
 
             if (stream._isInputStream) {
                 existInputStream = true;
@@ -69,13 +77,13 @@ public class SiddhiTrident extends BaseFunction {
         }
 
         if (!existInputStream) {
-            System.out.println("The input stream: " + _executionPlan.inputStreamName + " not exist on the streams!");
+            System.out.println("The input stream: " + executionPlan.inputStreamName + " not exist on the streams!");
             System.exit(1);
         }
 
-        for (String query : _executionPlan.querys) {
+        for (String query : executionPlan.querys) {
             try {
-                if (query.contains(_executionPlan.outputStreamName)) {
+                if (query.contains(executionPlan.outputStreamName)) {
                     _queryReference = _siddhiManager.addQuery(query);
                     existOutputStream = true;
                 } else {
@@ -87,10 +95,10 @@ public class SiddhiTrident extends BaseFunction {
         }
 
         if (!existOutputStream) {
-            System.out.println("The output stream: " + _executionPlan.outputStreamName + " not exist on the querys!");
+            System.out.println("The output stream: " + executionPlan.outputStreamName + " not exist on the querys!");
         }
 
-        for(String inputStreamName : _executionPlan.inputStreamName)
+        for(String inputStreamName : executionPlan.inputStreamName)
         _inputHandler.add(_siddhiManager.getInputHandler(inputStreamName));
 
         _siddhiManager.addCallback(_queryReference, new QueryCallback() {
@@ -99,8 +107,8 @@ public class SiddhiTrident extends BaseFunction {
                 for (Event event : inEvents) {
                     Map<String, Object> result = new HashMap<String, Object>();
                     Object[] data = event.getData();
-                    for (int i = 0; i < _executionPlan.outPutEventNames.size(); i++) {
-                        result.put(_executionPlan.outPutEventNames.get(i), data[i]);
+                    for (int i = 0; i < executionPlan.outPutEventNames.size(); i++) {
+                        result.put(executionPlan.outPutEventNames.get(i), data[i]);
                     }
                     _collector.emit(new Values(result));
                 }

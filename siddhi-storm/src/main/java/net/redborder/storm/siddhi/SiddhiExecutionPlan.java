@@ -1,7 +1,6 @@
 package net.redborder.storm.siddhi;
 
 import org.wso2.siddhi.query.api.definition.Attribute;
-import org.wso2.siddhi.query.api.definition.StreamDefinition;
 
 import java.io.Serializable;
 import java.util.ArrayList;
