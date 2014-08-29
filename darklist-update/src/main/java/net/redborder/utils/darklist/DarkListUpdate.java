@@ -1,9 +1,7 @@
 package net.redborder.utils.darklist;
 
-import au.com.bytecode.opencsv.CSVReader;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.framework.recipes.barriers.DistributedBarrier;
 import org.apache.curator.retry.RetryOneTime;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -26,21 +24,28 @@ import org.ho.yaml.Yaml;
 
 import java.io.*;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 
 /**
- * Created by andresgomez on 29/06/14.
+ * This App, download and update the darklist entries on GridGain cache.
+ * @author Andres Gomez
  */
 public class DarkListUpdate {
 
+    /**
+     * The path of config file.
+     */
     private final static String CONFIG_FILE_PATH = "/opt/rb/etc/darklist_config.yml";
-
-
     static Logger log = Logger.getLogger("DarkListUpdate");
+    /**
+     * Client to Zookeeper.
+     */
     static CuratorFramework client = null;
+    /**
+     * The timeout to download the full or incremental darklist.
+     */
     static Integer timeout = 10000;
 
     public static void main(String[] args) {
@@ -110,6 +115,9 @@ public class DarkListUpdate {
             log.log(Level.INFO, "Set barrier: on");
 
 
+            /*
+                Category list of the darklist entries.
+             */
             Map<Integer, String> category = new HashMap<Integer, String>();
             category.put(0, "<none>");
             category.put(1, "explicit Content");
@@ -143,6 +151,9 @@ public class DarkListUpdate {
             category.put(82, "passive DNS");
 
 
+            /*
+                Category list of the darklist entries.
+             */
             Map<Integer, String> protocol = new HashMap<Integer, String>();
             protocol.put(0, "<none>");
             protocol.put(7, "eDonkey user");
@@ -390,6 +401,13 @@ public class DarkListUpdate {
 
     }
 
+    /**
+     * Download, decompress the darklist and make a String with the CSV.
+     * @param general Config
+     * @param allList True: Full darklist, False: Incremental darklist.
+     * @return The CSV string.
+     * @throws IOException
+     */
     private static String outPutString(Map<String, Object> general, boolean allList) throws IOException {
         System.out.println("Downloading darklist ...");
         HttpClient httpclient = HttpClients.createDefault();
@@ -432,6 +450,12 @@ public class DarkListUpdate {
 
     }
 
+    /**
+     *
+     * @param toParse The CSV list with all entries.
+     * @return List of array with the String on the CSV.
+     * @throws IOException
+     */
     static private List<String[]> csvAll(List<String> toParse) throws IOException {
         List<String[]> csvAll = new ArrayList<String[]>();
         for (String aline : toParse) {
