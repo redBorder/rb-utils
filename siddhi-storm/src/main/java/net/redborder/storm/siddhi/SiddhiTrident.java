@@ -1,6 +1,10 @@
 package net.redborder.storm.siddhi;
 
 import backtype.storm.tuple.Values;
+import com.netflix.curator.RetryPolicy;
+import com.netflix.curator.framework.CuratorFramework;
+import com.netflix.curator.framework.CuratorFrameworkFactory;
+import com.netflix.curator.retry.ExponentialBackoffRetry;
 import org.wso2.siddhi.core.SiddhiManager;
 import org.wso2.siddhi.core.config.SiddhiConfiguration;
 import org.wso2.siddhi.core.event.Event;
@@ -13,6 +17,7 @@ import storm.trident.operation.BaseFunction;
 import storm.trident.operation.TridentCollector;
 import storm.trident.tuple.TridentTuple;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,34 +33,55 @@ public class SiddhiTrident extends BaseFunction {
     List<InputHandler> _inputHandler;
     List<StreamDefinition> _inputStreams;
     String _queryReference;
+    String _zookeeper;
+    CuratorFramework client = null;
 
     private TridentCollector _collector;
 
+    public SiddhiTrident(String zookeeper) {
+        _zookeeper = zookeeper;
+    }
 
 
     @Override
     public void prepare(java.util.Map conf, storm.trident.operation.TridentOperationContext context) {
 
-        final SiddhiExecutionPlan  executionPlan = new SiddhiExecutionPlan("stormTest");
+        RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
+        try {
+            client = CuratorFrameworkFactory.newClient(_zookeeper, retryPolicy);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        client.start();
+
+        try {
+            if (client.checkExists().forPath("query-siddhi") == null)
+                client.create().forPath("query-siddhi");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        final SiddhiExecutionPlan executionPlan = new SiddhiExecutionPlan("stormTest");
 
         executionPlan
                 .newStream("streamA", true)
-                    .addParameter("src", "string")
-                    .addParameter("bytes", "int")
+                .addParameter("src", "string")
+                .addParameter("bytes", "int")
                 .buildStream()
                 .addQuery("from streamA[src == '192.168.1.100' and bytes > 150] select src, bytes insert into windowStream")
                 .addQuery("from windowStream[bytes > 250] insert into outStream2")
                 .addQuery("from windowStream#window.time(1 min) select avg(bytes) as avgBytes, max(bytes) as maxBytes, min(bytes) as minBytes, src, bytes insert into outStream for current-events")
                 .addOutputStreamName("outStream")
-                    .addOutPutEventName("avgBytes")
-                    .addOutPutEventName("maxBytes")
-                    .addOutPutEventName("minBytes")
-                    .addOutPutEventName("src")
-                    .addOutPutEventName("bytes")
+                .addOutPutEventName("avgBytes")
+                .addOutPutEventName("maxBytes")
+                .addOutPutEventName("minBytes")
+                .addOutPutEventName("src")
+                .addOutPutEventName("bytes")
                 .buildOutPutStream()
                 .addOutputStreamName("outStream2")
-                    .addOutPutEventName("src")
-                    .addOutPutEventName("bytes")
+                .addOutPutEventName("src")
+                .addOutPutEventName("bytes")
                 .buildOutPutStream();
 
 
@@ -66,7 +92,7 @@ public class SiddhiTrident extends BaseFunction {
         configuration.setDistributedProcessing(true);
         configuration.setQueryPlanIdentifier(executionPlan._hazelCastInstance);
 
-         _siddhiManager = new SiddhiManager(configuration);
+        _siddhiManager = new SiddhiManager(configuration);
 
 
         if (executionPlan.inputStreamName == null) {
@@ -89,7 +115,7 @@ public class SiddhiTrident extends BaseFunction {
 
         for (String query : executionPlan.querys) {
             try {
-                    _siddhiManager.addQuery(query);
+                _siddhiManager.addQuery(query);
             } catch (SiddhiParserException ex) {
                 System.out.println("Invalid query expresion: \n [ " + query + " ]\n this query not added!");
             }
@@ -99,10 +125,10 @@ public class SiddhiTrident extends BaseFunction {
             System.out.println("The output stream: " + executionPlan.outputStreamName + " not exist on the querys!");
         }
 
-        for(String inputStreamName : executionPlan.inputStreamName)
-        _inputHandler.add(_siddhiManager.getInputHandler(inputStreamName));
+        for (String inputStreamName : executionPlan.inputStreamName)
+            _inputHandler.add(_siddhiManager.getInputHandler(inputStreamName));
 
-        for(final String outputStreamName : executionPlan.outputStreamName) {
+        for (final String outputStreamName : executionPlan.outputStreamName) {
 
             _siddhiManager.addCallback(outputStreamName, new StreamCallback() {
                 @Override
@@ -123,25 +149,36 @@ public class SiddhiTrident extends BaseFunction {
     @Override
     public void execute(TridentTuple tuple, final TridentCollector collector) {
 
-        _collector=collector;
+        try {
+            if (client.checkExists().forPath("query-siddhi/update") != null) {
+
+                System.out.println("Load Query");
+
+                client.delete().forPath("query-siddhi/update");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        _collector = collector;
 
         if (tuple.size() == _inputStreams.size()) {
             for (int i = 0; i < tuple.size(); i++) {
                 Map<String, Object> map = (Map<String, Object>) tuple.get(i);
 
                 try {
-                    _inputHandler.get(i).send(mapToArray(map,i).toArray());
+                    _inputHandler.get(i).send(mapToArray(map, i).toArray());
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
         } else {
-            System.out.println(" Different size tuple[" + tuple.size() +"] and inputStream [" + _inputStreams.size() +"]");
+            System.out.println(" Different size tuple[" + tuple.size() + "] and inputStream [" + _inputStreams.size() + "]");
         }
 
     }
 
-    private List<Object> mapToArray(Map<String, Object> map, int index){
+    private List<Object> mapToArray(Map<String, Object> map, int index) {
         List<Object> event = new ArrayList<Object>();
 
         for (Attribute field : _inputStreams.get(index).getAttributeList()) {
