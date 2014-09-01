@@ -35,7 +35,7 @@ public class SiddhiExecutionPlan implements Serializable {
         return this;
     }
 
-    public SiddhiOutPutStream setOutputStreamName(String streamName){
+    public SiddhiOutPutStream addOutputStreamName(String streamName){
         return new SiddhiOutPutStream(streamName, this);
     }
 
