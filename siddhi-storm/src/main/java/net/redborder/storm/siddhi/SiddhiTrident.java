@@ -1,10 +1,10 @@
 package net.redborder.storm.siddhi;
 
 import backtype.storm.tuple.Values;
-import com.netflix.curator.RetryPolicy;
-import com.netflix.curator.framework.CuratorFramework;
-import com.netflix.curator.framework.CuratorFrameworkFactory;
-import com.netflix.curator.retry.ExponentialBackoffRetry;
+import org.apache.curator.RetryPolicy;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.wso2.siddhi.core.SiddhiManager;
 import org.wso2.siddhi.core.config.SiddhiConfiguration;
 import org.wso2.siddhi.core.event.Event;
@@ -47,11 +47,8 @@ public class SiddhiTrident extends BaseFunction {
     public void prepare(java.util.Map conf, storm.trident.operation.TridentOperationContext context) {
 
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
-        try {
-            client = CuratorFrameworkFactory.newClient(_zookeeper, retryPolicy);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
+        client = CuratorFrameworkFactory.newClient(_zookeeper, retryPolicy);
 
         client.start();
 
