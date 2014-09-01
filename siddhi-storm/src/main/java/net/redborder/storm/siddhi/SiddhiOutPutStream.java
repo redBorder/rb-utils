@@ -20,7 +20,6 @@ public class SiddhiOutPutStream implements Serializable{
 
         if(!_executionPlan.outPutEventNames.get(_outPutStreamName).contains(eventName)){
             _executionPlan.outPutEventNames.get(_outPutStreamName).add(eventName);
-            System.out.println("Values: " + _executionPlan.outPutEventNames.get(_outPutStreamName));
         }else{
             System.out.println("The event name: "+ eventName + " is already exists!");
         }
