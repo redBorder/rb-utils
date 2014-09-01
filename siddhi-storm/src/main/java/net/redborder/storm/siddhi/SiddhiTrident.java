@@ -53,8 +53,8 @@ public class SiddhiTrident extends BaseFunction {
         client.start();
 
         try {
-            if (client.checkExists().forPath("query-siddhi") == null)
-                client.create().forPath("query-siddhi");
+            if (client.checkExists().forPath("/query-siddhi") == null)
+                client.create().forPath("/query-siddhi");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -147,11 +147,11 @@ public class SiddhiTrident extends BaseFunction {
     public void execute(TridentTuple tuple, final TridentCollector collector) {
 
         try {
-            if (client.checkExists().forPath("query-siddhi/update") != null) {
+            if (client.checkExists().forPath("/query-siddhi/update") != null) {
 
                 System.out.println("Load Query");
 
-                client.delete().forPath("query-siddhi/update");
+                client.delete().forPath("/query-siddhi/update");
             }
         } catch (Exception e) {
             e.printStackTrace();
