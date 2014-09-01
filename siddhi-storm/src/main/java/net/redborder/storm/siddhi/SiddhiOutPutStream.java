@@ -1,22 +1,26 @@
 package net.redborder.storm.siddhi;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 
 /**
  * Created by andresgomez on 22/06/14.
  */
 public class SiddhiOutPutStream implements Serializable{
     SiddhiExecutionPlan _executionPlan;
+    String _outPutStreamName;
 
     public SiddhiOutPutStream(String outPutStreamName, SiddhiExecutionPlan executionPlan){
         _executionPlan=executionPlan;
-        _executionPlan.outputStreamName.add(outPutStreamName);
+        _outPutStreamName=outPutStreamName;
+        _executionPlan.outPutEventNames.put(outPutStreamName, new ArrayList<String>());
     }
 
     public SiddhiOutPutStream addOutPutEventName(String eventName){
 
-        if(!_executionPlan.outPutEventNames.contains(eventName)){
-            _executionPlan.outPutEventNames.add(eventName);
+        if(!_executionPlan.outPutEventNames.get(_outPutStreamName).contains(eventName)){
+            _executionPlan.outPutEventNames.get(_outPutStreamName).add(eventName);
+            System.out.println("Values: " + _executionPlan.outPutEventNames.get(_outPutStreamName));
         }else{
             System.out.println("The event name: "+ eventName + " is already exists!");
         }
