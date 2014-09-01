@@ -110,7 +110,7 @@ public class SiddhiTrident extends BaseFunction {
                     for (Event event : events) {
                         Map<String, Object> result = new HashMap<String, Object>();
                         Object[] data = event.getData();
-                        for (int i = 0; i < executionPlan.outPutEventNames.size(); i++) {
+                        for (int i = 0; i < executionPlan.outPutEventNames.get(outputStreamName).size(); i++) {
                             result.put(executionPlan.outPutEventNames.get(outputStreamName).get(i), data[i]);
                         }
                         _collector.emit(new Values(outputStreamName, result));
