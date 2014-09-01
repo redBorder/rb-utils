@@ -10,7 +10,7 @@ public class SiddhiOutPutStream implements Serializable{
 
     public SiddhiOutPutStream(String outPutStreamName, SiddhiExecutionPlan executionPlan){
         _executionPlan=executionPlan;
-        _executionPlan.outputStreamName=outPutStreamName;
+        _executionPlan.outputStreamName.add(outPutStreamName);
     }
 
     public SiddhiOutPutStream addOutPutEventName(String eventName){

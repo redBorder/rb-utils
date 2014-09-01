@@ -17,13 +17,14 @@ public class SiddhiExecutionPlan implements Serializable {
     public List<String> querys;
     public List<String> outPutEventNames;
     public List<String> inputStreamName;
-    public String outputStreamName;
+    public List<String> outputStreamName;
     public String _hazelCastInstance;
 
 
     public SiddhiExecutionPlan(String hazelCastInstance){
         streams = new HashMap<String , SiddhiStream>();
         querys = new ArrayList<String>();
+        outputStreamName = new ArrayList<String>();
         outPutEventNames = new ArrayList<String>();
         inputStreamName = new ArrayList<String>();
         _hazelCastInstance=hazelCastInstance;
@@ -63,8 +64,8 @@ public class SiddhiExecutionPlan implements Serializable {
             }
         }
 
-        toString = toString + "- InputStream: [" + inputStreamName.toString() +"] \n";
-        toString = toString + "- OutputStream: [" + outputStreamName + "] \n";
+        toString = toString + "- InputStreams: [" + inputStreamName.toString() +"] \n";
+        toString = toString + "- OutputStreams: [" + outputStreamName.toString()+ "] \n";
         for(String outPutName : outPutEventNames) {
             toString = toString + "    * Attribute: " + outPutName + "\n";
         }

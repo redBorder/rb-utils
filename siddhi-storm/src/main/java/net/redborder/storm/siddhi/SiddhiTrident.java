@@ -4,8 +4,8 @@ import backtype.storm.tuple.Values;
 import org.wso2.siddhi.core.SiddhiManager;
 import org.wso2.siddhi.core.config.SiddhiConfiguration;
 import org.wso2.siddhi.core.event.Event;
-import org.wso2.siddhi.core.query.output.callback.QueryCallback;
 import org.wso2.siddhi.core.stream.input.InputHandler;
+import org.wso2.siddhi.core.stream.output.StreamCallback;
 import org.wso2.siddhi.query.api.definition.Attribute;
 import org.wso2.siddhi.query.api.definition.StreamDefinition;
 import org.wso2.siddhi.query.compiler.exception.SiddhiParserException;
@@ -53,8 +53,6 @@ public class SiddhiTrident extends BaseFunction {
                 .addOutPutEventName("bytes")
                 .buildOutPutStream();
 
-        boolean existInputStream = false;
-        boolean existOutputStream = false;
 
         _inputStreams = new ArrayList<StreamDefinition>();
         _inputHandler = new ArrayList<InputHandler>();
@@ -74,51 +72,48 @@ public class SiddhiTrident extends BaseFunction {
         for (SiddhiStream stream : executionPlan.streams.values()) {
 
             if (stream._isInputStream) {
-                existInputStream = true;
                 _inputStreams.add(stream.streamDefinition);
             }
             _siddhiManager.defineStream(stream.streamDefinition);
         }
 
-        if (!existInputStream) {
+        if (executionPlan.inputStreamName.isEmpty()) {
             System.out.println("The input stream: " + executionPlan.inputStreamName + " not exist on the streams!");
             System.exit(1);
         }
 
         for (String query : executionPlan.querys) {
             try {
-                if (query.contains(executionPlan.outputStreamName)) {
-                    _queryReference = _siddhiManager.addQuery(query);
-                    existOutputStream = true;
-                } else {
                     _siddhiManager.addQuery(query);
-                }
             } catch (SiddhiParserException ex) {
                 System.out.println("Invalid query expresion: \n [ " + query + " ]\n this query not added!");
             }
         }
 
-        if (!existOutputStream) {
+        if (executionPlan.outputStreamName.isEmpty()) {
             System.out.println("The output stream: " + executionPlan.outputStreamName + " not exist on the querys!");
         }
 
         for(String inputStreamName : executionPlan.inputStreamName)
         _inputHandler.add(_siddhiManager.getInputHandler(inputStreamName));
 
-        _siddhiManager.addCallback(_queryReference, new QueryCallback() {
-            @Override
-            public void receive(long timeStamp, Event[] inEvents, Event[] removeEvents) {
-                for (Event event : inEvents) {
-                    Map<String, Object> result = new HashMap<String, Object>();
-                    Object[] data = event.getData();
-                    for (int i = 0; i < executionPlan.outPutEventNames.size(); i++) {
-                        result.put(executionPlan.outPutEventNames.get(i), data[i]);
-                    }
-                    _collector.emit(new Values(result));
-                }
+        for(final String outputStreamName : executionPlan.outputStreamName) {
 
-            }
-        });    }
+            _siddhiManager.addCallback(outputStreamName, new StreamCallback() {
+                @Override
+                public void receive(Event[] events) {
+                    for (Event event : events) {
+                        Map<String, Object> result = new HashMap<String, Object>();
+                        Object[] data = event.getData();
+                        for (int i = 0; i < executionPlan.outPutEventNames.size(); i++) {
+                            result.put(executionPlan.outPutEventNames.get(i), data[i]);
+                        }
+                        _collector.emit(new Values(outputStreamName, result));
+                    }
+                }
+            });
+        }
+    }
 
     @Override
     public void execute(TridentTuple tuple, final TridentCollector collector) {
