@@ -1,5 +1,6 @@
 package net.redborder.utils.gridgain;
 
+import com.amazonaws.auth.BasicAWSCredentials;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import org.gridgain.grid.Grid;
@@ -10,7 +11,19 @@ import org.gridgain.grid.cache.GridCache;
 import org.gridgain.grid.cache.GridCacheConfiguration;
 import org.gridgain.grid.cache.GridCacheDistributionMode;
 import org.gridgain.grid.cache.GridCacheMode;
+import org.gridgain.grid.spi.discovery.tcp.GridTcpDiscoverySpi;
+import org.gridgain.grid.spi.discovery.tcp.ipfinder.s3.GridTcpDiscoveryS3IpFinder;
+import org.gridgain.grid.spi.discovery.tcp.ipfinder.vm.GridTcpDiscoveryVmIpFinder;
+import org.ho.yaml.Yaml;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -18,11 +31,20 @@ import java.util.Map;
  */
 public class Key {
 
-    public static void main(String[] args) {
+    private final static String CONFIG_FILE_PATH = "/opt/rb/etc/redBorder-BI/config.yml";
+
+    public static void main(String[] args) throws FileNotFoundException {
+
+
+        Map<String, Object> configFile = (Map<String, Object>) Yaml.load(new File(CONFIG_FILE_PATH));
+        Map<String, Object> general = (Map<String, Object>) configFile.get("general");
+        Map<String, Object> gridGainConfig = (Map<String, Object>) general.get("gridgain");
 
 
         Grid grid = null;
         String cache = null;
+        List<String> _gridGainServers = null;
+        Map<String, Object> _s3Config = null;
 
         try {
 
@@ -37,8 +59,51 @@ public class Key {
                 GridCacheConfiguration cacheConf = new GridCacheConfiguration();
                 cacheConf.setDistributionMode(GridCacheDistributionMode.CLIENT_ONLY);
 
-
                 GridConfiguration conf = new GridConfiguration();
+
+
+
+                if(!gridGainConfig.containsKey("s3")) {
+                    _gridGainServers = (List<String>) gridGainConfig.get("servers");
+                }
+                else{
+                    _s3Config = (Map<String, Object>) gridGainConfig.get("s3");
+                }
+
+                GridTcpDiscoverySpi gridTcp = new GridTcpDiscoverySpi();
+
+                if(_s3Config==null) {
+                    GridTcpDiscoveryVmIpFinder gridIpFinder = new GridTcpDiscoveryVmIpFinder();
+
+                    Collection<InetSocketAddress> ips = new ArrayList<InetSocketAddress>();
+
+                    try {
+                        conf.setLocalHost(InetAddress.getLocalHost().getHostName());
+                    } catch (UnknownHostException e) {
+                        e.printStackTrace();
+                    }
+
+                    if (_gridGainServers != null) {
+                        for (String server : _gridGainServers) {
+                            String[] serverPort = server.split(":");
+                            ips.add(new InetSocketAddress(serverPort[0], Integer.valueOf(serverPort[1])));
+                        }
+
+                        gridIpFinder.registerAddresses(ips);
+                    }
+
+                    gridTcp.setIpFinder(gridIpFinder);
+
+                } else {
+                    GridTcpDiscoveryS3IpFinder s3IpFinder = new GridTcpDiscoveryS3IpFinder();
+                    s3IpFinder.setBucketName(_s3Config.get("bucket").toString());
+                    s3IpFinder.setAwsCredentials(new BasicAWSCredentials(_s3Config.get("access_key").toString(), _s3Config.get("secret_key").toString()));
+                    gridTcp.setIpFinder(s3IpFinder);
+                }
+
+                conf.setDiscoverySpi(gridTcp);
+
+
                 cacheConf.setCacheMode(GridCacheMode.PARTITIONED);
                 cacheConf.setName(cache);
                 if (cache.equals("darklist"))
