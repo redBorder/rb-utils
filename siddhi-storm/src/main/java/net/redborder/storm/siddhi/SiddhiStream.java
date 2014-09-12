@@ -16,12 +16,18 @@ public class SiddhiStream implements Serializable {
 
     boolean _isInputStream = false;
 
+    String source = "";
+
 
     public SiddhiStream(String streamName, SiddhiExecutionPlan executionPlan, boolean isInputStream) {
         streamDefinition  = new StreamDefinition();
         streamDefinition.name(streamName);
         _executionPlan = executionPlan;
         _isInputStream =  isInputStream;
+    }
+
+    public void setSource(String source){
+        this.source=source;
     }
 
     public SiddhiStream addParameter (String parameterName, String parameterType){
