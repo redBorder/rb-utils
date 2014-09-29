@@ -1,6 +1,7 @@
 package net.redborder.storm.siddhi;
 
 import backtype.storm.tuple.Values;
+import com.twitter.concurrent.ThreadPoolScheduler;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -79,6 +80,7 @@ public class SiddhiTrident extends BaseFunction {
     public void execute(TridentTuple tuple, final TridentCollector collector) {
 
         _collector = collector;
+
         Map<String, Object> map = (Map<String, Object>) tuple.getValueByField(_inputField);
         for (int i = 0; i < _inputsHandler.get(_inputField).size(); i++) {
             try {
@@ -245,7 +247,7 @@ public class SiddhiTrident extends BaseFunction {
                         }
                         System.out.println("Alert!!! ->  " + result);
 
-                        _collector.emit(new Values(outputStreamName, result));
+                        //_collector.emit(new Values(outputStreamName, result));
                     }
                 }
             });
