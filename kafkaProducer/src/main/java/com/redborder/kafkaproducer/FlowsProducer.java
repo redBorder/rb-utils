@@ -155,7 +155,7 @@ public class FlowsProducer {
         if (cmdLine.hasOption("s")) {
             events = Integer.valueOf(cmdLine.getOptionValue("s"));
             if (events != 0)
-                time = 1000 / events;
+                time = 1000000000 / events;
             else
                 time = 0;
         }
@@ -195,7 +195,8 @@ public class FlowsProducer {
                 producer.send(getLocation());
             }
 
-            Thread.sleep(time);
+            Long nano = time%1000000;
+            Thread.sleep(time/1000000, nano.intValue());
         }
 
         new HelpFormatter().printHelp(FlowsProducer.class.getCanonicalName(), options);
