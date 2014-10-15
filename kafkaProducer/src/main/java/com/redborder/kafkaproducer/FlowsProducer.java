@@ -128,6 +128,7 @@ public class FlowsProducer {
         List<String> topicsList = null;
         boolean run = true;
 
+        int events = 100;
         long time = 0;
 
         Options options = new Options();
@@ -152,7 +153,11 @@ public class FlowsProducer {
 
 
         if (cmdLine.hasOption("s")) {
-            time = Long.valueOf(cmdLine.getOptionValue("s"));
+            events = Integer.valueOf(cmdLine.getOptionValue("s"));
+            if (events != 0)
+                time = 1000 / events;
+            else
+                time = 0;
         }
 
 
@@ -165,21 +170,19 @@ public class FlowsProducer {
         configProducer(cmdLine.getOptionValue("zk"));
         String topics = cmdLine.getOptionValue("topics");
 
-        if(!(topics.contains("rb_flow") || topics.contains("rb_loc"))){
+        if (!(topics.contains("rb_flow") || topics.contains("rb_loc"))) {
             System.out.println("Available topics: rb_flow   rb_loc");
             return;
         }
 
         if (topics.contains(","))
             topicsList = Arrays.asList(topics.split(","));
-        else if(topics.contains(":"))
+        else if (topics.contains(":"))
             topicsList = Arrays.asList(topics.split(":"));
         else {
             topicsList = new ArrayList<String>();
             topicsList.add(topics);
         }
-
-
 
 
         System.out.println("Producing to: " + _brokerList);
