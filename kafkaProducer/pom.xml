@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>net.redborder.utils</groupId>
-  <artifactId>flows-producer</artifactId>
+  <artifactId>rb-kafka-producer</artifactId>
   <version>1.0</version>
   <packaging>jar</packaging>
 
@@ -90,6 +90,8 @@
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
+                    <finalName>${project.artifactId}-${project.version}</finalName>
+                    <appendAssemblyId>false</appendAssemblyId>
                     <archive>
                         <manifest>
                             <mainClass>com.redborder.kafkaproducer.FlowsProducer</mainClass>
