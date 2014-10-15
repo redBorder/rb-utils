@@ -125,12 +125,17 @@ public class FlowsProducer {
         String [] classification = {"Potential Corporate Privacy Violation", "Sensitive Data was Transmitted Across the Network", "Potentially Bad Traffic",
         "Unknown Traffic"};
 
+        String [] msg = {"SERVER-IIS Microsoft IIS 7.5 client verify null pointer attempt", "OS-MOBILE Android User-Agent detected", "sensitive_data: sensitive data - U.S. social security numbers without dashes"
+        , "http_inspect: OVERSIZE REQUEST-URI DIRECTORY", "OS-WINDOWS Microsoft Windows UPnP Location overflow attempt", "ssp_ssl: Invalid Client HELLO after Server HELLO Detected"};
+
         int classificationInt = new Random().nextInt(classification.length);
+        int msgInt = new Random().nextInt(msg.length);
+
 
         String event = "{\"timestamp\":"+(System.currentTimeMillis() / 1000)+", \"sensor_id\":7, \"type\":\"ips\", \"sensor_name\":\"rbips\", \"sensor_ip\":\"65.50.203.157\"," +
                 " \"domain_name\":\"IPS\", \"group_name\":\"default\", \"group_id\":8, \"sig_generator\":1, \"sig_id\":25521," +
                 " \"rev\":3, \"priority\":\"high\", \"classification\":\""+classification[classificationInt]+"\"," +
-                " \"action\":\"alert\", \"msg\":\"OS-MOBILE Android User-Agent detected\"," +
+                " \"action\":\"alert\", \"msg\":\""+msg[msgInt]+"\"," +
                 " \"payload\":\"474554202f737469636b6572732f6e6f74696669636174696f6e732e6a736f6e20485454502f312e31da557365722d4167656e743a2044616c76696b2f312e362e3020284c6" +
                 "96e75783b20553b20416e64726f696420342e342e333b20485443363530304c5657204275696c642f4b545538344c29da486f73743a20636f6e74656e742e63646e2e76696265722e63" +
                 "6f6dda436f6e6e656374696f6e3a204b6565702d416c697665da4163636570742d456e636f64696e673a20677a6970dada\", \"l4_proto\":6, " +
