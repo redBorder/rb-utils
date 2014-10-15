@@ -24,6 +24,8 @@ public class FlowsProducer {
 
     static Producer<String, String> producer;
 
+    static String _brokerList = new String();
+
     public static String getMac() {
         String[] macs = {"54:26:96:d7:62:91", "b4:52:7e:8d:24:0f",
                 "88:32:9b:4e:71:36", "b4:52:7e:88:ca:53",
@@ -170,8 +172,6 @@ public class FlowsProducer {
 
         if (topics.contains(","))
             topicsList = Arrays.asList(topics.split(","));
-        else if(topics.contains(" "))
-            topicsList = Arrays.asList(topics.split(" "));
         else if(topics.contains(":"))
             topicsList = Arrays.asList(topics.split(":"));
         else {
@@ -182,7 +182,7 @@ public class FlowsProducer {
 
 
 
-
+        System.out.println("Producing to: " + _brokerList);
         while (run) {
 
             if (topicsList.contains("rb_flow")) {
@@ -202,10 +202,9 @@ public class FlowsProducer {
 
     public static void configProducer(String zookeeper) {
 
-        String _brokerList = new String();
 
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
-        CuratorFramework client = CuratorFrameworkFactory.newClient("andres01:2181,andres02:2181,10.0.153.68:2182", retryPolicy);
+        CuratorFramework client = CuratorFrameworkFactory.newClient(zookeeper, retryPolicy);
         client.start();
 
         List<String> ids = null;
