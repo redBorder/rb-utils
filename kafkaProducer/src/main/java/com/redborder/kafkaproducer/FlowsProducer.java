@@ -120,6 +120,35 @@ public class FlowsProducer {
         return new KeyedMessage<String, String>("rb_flow", flow);
     }
 
+    public static KeyedMessage getEvent() {
+
+        String [] classification = {"Potential Corporate Privacy Violation", "Sensitive Data was Transmitted Across the Network", "Potentially Bad Traffic",
+        "Unknown Traffic"};
+
+        int classificationInt = new Random().nextInt(classification.length);
+
+        String event = "{\"timestamp\":"+(System.currentTimeMillis() / 1000)+", \"sensor_id\":7, \"type\":\"ips\", \"sensor_name\":\"rbips\", \"sensor_ip\":\"65.50.203.157\"," +
+                " \"domain_name\":\"IPS\", \"group_name\":\"default\", \"group_id\":8, \"sig_generator\":1, \"sig_id\":25521," +
+                " \"rev\":3, \"priority\":\"high\", \"classification\":\""+classification[classificationInt]+"\"," +
+                " \"action\":\"alert\", \"msg\":\"OS-MOBILE Android User-Agent detected\"," +
+                " \"payload\":\"474554202f737469636b6572732f6e6f74696669636174696f6e732e6a736f6e20485454502f312e31da557365722d4167656e743a2044616c76696b2f312e362e3020284c6" +
+                "96e75783b20553b20416e64726f696420342e342e333b20485443363530304c5657204275696c642f4b545538344c29da486f73743a20636f6e74656e742e63646e2e76696265722e63" +
+                "6f6dda436f6e6e656374696f6e3a204b6565702d416c697665da4163636570742d456e636f64696e673a20677a6970dada\", \"l4_proto\":6, " +
+                "\"src\":\""+getIP()+"\", \"src_net\":\"0.0.0.0/0\", \"src_net_name\":\"0.0.0.0/0\", \"src_as\":8121," +
+                " \"src_as_name\":\"TCH Network Services\", \"dst\":\""+getIP()+"\", \"dst_net\":\"0.0.0.0/0\"," +
+                " \"dst_net_name\":\"0.0.0.0/0\", \"dst_as\":2914, \"dst_as_name\":\"NTT America, Inc.\"," +
+                " \"src_port\":92, \"dst_port\":80, \"ethsrc\":\""+getMac()+"\", " +
+                "\"ethdst\":\""+getMac()+"\", \"ethlength\":264," +
+                " \"ethlength_range\":\"(256-512]\", \"tcpflags\":\"***AP***\"," +
+                " \"tcpseq\":432143985, \"tcpack\":3505747298, \"tcplen\":32, " +
+                "\"tcpwindow\":229, \"ttl\":"+new Random().nextInt(120)+", \"tos\":0, \"id\":31461, " +
+                "\"dgmlen\":250, \"iplen\":256000, \"iplen_range\":\"[131072-262144)\"," +
+                " \"src_country\":\"United States\", \"dst_country\":\"United States\"," +
+                " \"src_country_code\":\"US\", \"dst_country_code\":\"US\", \"ethsrc_vendor\":\"Cisco\", \"ethdst_vendor\":\"Cisco\"}";
+
+        return new KeyedMessage<String, String>("rb_event", event);
+    }
+
 
     public static void main(String[] args) throws InterruptedException {
 
@@ -170,8 +199,8 @@ public class FlowsProducer {
         configProducer(cmdLine.getOptionValue("zk"));
         String topics = cmdLine.getOptionValue("topics");
 
-        if (!(topics.contains("rb_flow") || topics.contains("rb_loc"))) {
-            System.out.println("Available topics: rb_flow   rb_loc");
+        if (!(topics.contains("rb_flow") || topics.contains("rb_loc") || topics.contains("rb_event"))) {
+            System.out.println("Available topics: rb_flow   rb_loc   rb_event");
             return;
         }
 
@@ -193,6 +222,9 @@ public class FlowsProducer {
             }
             if (topicsList.contains("rb_loc")) {
                 producer.send(getLocation());
+            }
+            if (topicsList.contains("rb_event")) {
+                producer.send(getEvent());
             }
 
             Long nano = time%1000000;
