@@ -158,6 +158,19 @@ public class FlowsProducer {
     public static void main(String[] args) throws InterruptedException {
 
 
+
+        Runtime.getRuntime().addShutdownHook(new Thread()
+        {
+            @Override
+            public void run()
+            {
+                if(producer!=null)
+                    producer.close();
+                
+                System.out.println("Shutdown!");
+            }
+        });
+
         CommandLine cmdLine = null;
         List<String> topicsList = null;
         boolean run = true;
@@ -306,4 +319,7 @@ public class FlowsProducer {
 
         client.close();
     }
+
+
+
 }
