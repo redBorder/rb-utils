@@ -198,7 +198,7 @@ public class FlowsProducer {
                 if(producer!=null)
                     producer.close();
                 
-                System.out.println("Shutdown!\n");
+                System.out.println("Shutdown!");
             }
         });
 
