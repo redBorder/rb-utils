@@ -24,6 +24,8 @@ public class FlowsProducer {
 
     static Producer<String, String> producer;
 
+    static Random randomX = new Random();
+
     static String _brokerList = new String();
 
     public static String getMac() {
@@ -68,22 +70,21 @@ public class FlowsProducer {
 
 
         String[] status = {"ASSOCIATED", "PROBING", "UNKNOWN"};
-        int statusInt = new Random().nextInt(status.length);
+        int statusInt = randomX.nextInt(status.length);
 
         String[] zonas = {"Zone X", "Zone C", "Zone A", "Zone B",
                 "Zone Y"};
-        int zonaInt = new Random().nextInt(zonas.length);
+        int zonaInt = randomX.nextInt(zonas.length);
 
 
         double lat = 37.40;
         double lon = 26.97;
 
-        double random = new Random().nextInt(100);
-        double random2 = new Random().nextInt(100);
+        double random = randomX.nextInt(100);
+        double random2 = randomX.nextInt(100);
         double randomOk = random / 100;
         double random1k = random2 / 100;
 
-        int r = new Random().nextInt(100);
 
         DateTime date = new DateTime();
 
@@ -108,14 +109,44 @@ public class FlowsProducer {
 
     public static KeyedMessage getFlow() {
 
-        String flow = "{\"type\":\"NetFlowv9\",\"client_mac\":\"" + getMac() + "\","
-                + "\"src\":\"" + getIP() + "\",\"src_net\":\"0.0.0.0/0\","
-                + "\"src_net_name\":\"0.0.0.0/0\",\"application_id\":\"13:453\","
-                + "\"application_id_name\":\"ssl\",\"engine_id\":13,"
-                + "\"engine_id_name\":\"PANA-L7\","
-                + "\"direction\":\"egress\","
-                + "\"sensor_ip\":\"192.168.101.66\",\"sensor_name\":\"TEST\","
-                + "\"timestamp\":" + (System.currentTimeMillis() / 1000) + ",\"bytes\":" + new Random().nextInt(3000) + ",\"pkts\":" + new Random().nextInt(300) + "}";
+        String[] status = {"ASSOCIATED", "PROBING", "UNKNOWN"};
+        int statusInt = randomX.nextInt(status.length);
+
+        String[] zonas = {"Zone X", "Zone C", "Zone A", "Zone B",
+                "Zone Y"};
+        int zonaInt =  randomX.nextInt(zonas.length);
+
+
+
+        double lat = 37.40;
+        double lon = 26.97;
+
+        double random = randomX.nextInt(100);
+        double random2 = randomX.nextInt(100);
+        double randomOk = random / 100;
+        double random1k = random2 / 100;
+
+
+
+        String flow = "{\"client_latlong\":\""+(lat + randomOk)+","+(lon - random1k)+"\"," +
+                "\"dst_country_code\":\"US\",\"dot11_status\":\""+status[statusInt]+"\"," +
+                "\"bytes\":"+new Random().nextInt(3000)+",\"src_net_name\":\"0.0.0.0/0\",\"flow_sampler_id\":0," +
+                "\"direction\":\"ingress\",\"wireless_station\":\""+getAPmac()+"\"," +
+                "\"biflow_direction\":\"initiator\",\"pkts\":"+randomX.nextInt(500)+",\"dst\":\""+ getIP()+"\"," +
+                "\"type\":\"NetFlowv10\",\"client_campus\":\""+zonas[zonaInt]+" campus"+"\"," +
+                "\"client_building\":\""+zonas[zonaInt]+ " building"+"\",\"timestamp\":" + (System.currentTimeMillis() / 1000) +"," +
+                "\"client_mac\":\""+getMac()+"\",\"wireless_id\":\""+getSSID()+"\"," +
+                "\"flow_end_reason\":\"idle timeout\",\"src_net\":\"0.0.0.0/0\"," +
+                "\"client_rssi_num\":"+(-randomX.nextInt(80))+",\"engine_id_name\":\"IANA-L4\"," +
+                "\"src\":\""+ getIP()+"\",\"application_id\":\""+randomX.nextInt(10)+":"+randomX.nextInt(100)+"\"," +
+                "\"sensor_ip\":\""+getIP()+"\"," +
+                "\"application_id_name\":\""+zonas[zonaInt]+"\",\"dst_net\":\"0.0.0.0/0\"," +
+                "\"l4_proto\":"+randomX.nextInt(10)+",\"ip_protocol_version\":4,\"dst_net_name\":\"0.0.0.0/0\"," +
+                "\"sensor_name\":\"ISG\",\"src_country_code\":\"US\"," +
+                "\"client_floor\":\""+zonas[zonaInt] + " floor" +"\",\"engine_id\":"+randomX.nextInt(20)+
+                ",\"client_mac_vendor\":\"SAMSUNG ELECTRO-MECHANICS\"}";
+
+
 
         return new KeyedMessage<String, String>("rb_flow", flow);
     }
@@ -167,7 +198,7 @@ public class FlowsProducer {
                 if(producer!=null)
                     producer.close();
                 
-                System.out.println("Shutdown!");
+                System.out.println("Shutdown!\n");
             }
         });
 
