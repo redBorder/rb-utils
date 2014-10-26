@@ -22,9 +22,9 @@ public class ClusterStatistics {
                 System.out.println("  - Host: "+ supervisor.get_host());
                 System.out.println("  - Total workers: "+ supervisor.get_num_workers());
                 System.out.println("  - Used workers: "+ supervisor.get_num_used_workers());
-                System.out.println("  - Uptime seconds: "+ supervisor.get_uptime_secs() + "\n");
+                System.out.println("  - Uptime seconds: "+ supervisor.get_uptime_secs());
             }
-
+            System.out.println("");
             for(TopologySummary topology : clusterInfo.get_topologies()) {
                 System.out.println(" Topology:  ");
                 System.out.println("  - Name: "+ topology.get_name());
@@ -32,11 +32,9 @@ public class ClusterStatistics {
                 System.out.println("  - Tasks: "+ topology.get_num_tasks());
                 System.out.println("  - Executors: "+ topology.get_num_executors());
                 System.out.println("  - Workers: "+ topology.get_num_workers() );
-                System.out.println("  - Uptime seconds: "+ topology.get_uptime_secs() + "\n");
+                System.out.println("  - Uptime seconds: "+ topology.get_uptime_secs());
 
             }
-
-            System.out.println("************************************************************************");
         } catch (Exception exception) {
             throw new RuntimeException("Error occurred while fetching the Nimbus statistics : ");
         }
