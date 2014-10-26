@@ -25,7 +25,7 @@ public class BoltStatistics {
                 TopologyInfo topologyInfo = client.getTopologyInfo(topology.get_id());
                 Iterator<ExecutorSummary> executorSummaryIterator = topologyInfo
                         .get_executors_iterator();
-                System.out.println("  Topology: " + topologyInfo.get_name());
+                System.out.println("  TOPOLOGY: " + topologyInfo.get_name());
                 while (executorSummaryIterator.hasNext()) {
                     // get the executor
                     ExecutorSummary executorSummary = executorSummaryIterator.next();

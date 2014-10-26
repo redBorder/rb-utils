@@ -27,7 +27,7 @@ public class SpoutStatistics {
                 Iterator<ExecutorSummary> executorSummaryIterator = topologyInfo
                         .get_executors_iterator();
 
-                System.out.println("  Topology: " + topologyInfo.get_name());
+                System.out.println("  TOPOLOGY: " + topologyInfo.get_name());
                 while (executorSummaryIterator.hasNext()) {
                     ExecutorSummary executorSummary = executorSummaryIterator.next();
                     ExecutorStats executorStats = executorSummary.get_stats();
