@@ -128,7 +128,7 @@ public class FlowsProducer {
 
 
 
-        String flow = "{\"client_latlong\":\""+(lat + randomOk)+","+(lon - random1k)+"\"," +
+       /* String flow = "{\"client_latlong\":\""+(lat + randomOk)+","+(lon - random1k)+"\"," +
                 "\"dst_country_code\":\"US\",\"dot11_status\":\""+status[statusInt]+"\"," +
                 "\"bytes\":"+new Random().nextInt(3000)+",\"src_net_name\":\"0.0.0.0/0\",\"flow_sampler_id\":0," +
                 "\"direction\":\"ingress\",\"wireless_station\":\""+getAPmac()+"\"," +
@@ -144,7 +144,24 @@ public class FlowsProducer {
                 "\"l4_proto\":"+randomX.nextInt(10)+",\"ip_protocol_version\":4,\"dst_net_name\":\"0.0.0.0/0\"," +
                 "\"sensor_name\":\"ISG\",\"src_country_code\":\"US\"," +
                 "\"client_floor\":\""+zonas[zonaInt] + " floor" +"\",\"engine_id\":"+randomX.nextInt(20)+
-                ",\"client_mac_vendor\":\"SAMSUNG ELECTRO-MECHANICS\"}";
+                ",\"client_mac_vendor\":\"SAMSUNG ELECTRO-MECHANICS\"}";*/
+
+       String flow = "{" +
+                "\"bytes\":"+new Random().nextInt(3000)+",\"src_net_name\":\"0.0.0.0/0\",\"flow_sampler_id\":0," +
+                "\"direction\":\"ingress\"," +
+                "\"biflow_direction\":\"initiator\",\"pkts\":"+randomX.nextInt(500)+",\"dst\":\""+ getIP()+"\"," +
+                "\"type\":\"NetFlowv10\"," +
+                "\"timestamp\":" + (System.currentTimeMillis() / 1000) +"," +
+                "\"client_mac\":\""+getMac()+"\"," +
+                "\"flow_end_reason\":\"idle timeout\",\"src_net\":\"0.0.0.0/0\"," +
+                "\"engine_id_name\":\"IANA-L4\"," +
+                "\"src\":\""+ getIP()+"\",\"application_id\":\""+randomX.nextInt(10)+":"+randomX.nextInt(100)+"\"," +
+                "\"sensor_ip\":\""+getIP()+"\"," +
+                "\"application_id_name\":\""+zonas[zonaInt]+"\",\"dst_net\":\"0.0.0.0/0\"," +
+                "\"l4_proto\":"+randomX.nextInt(10)+",\"ip_protocol_version\":4,\"dst_net_name\":\"0.0.0.0/0\"," +
+                "\"sensor_name\":\"TESTING\"," +
+                "\"engine_id\":"+randomX.nextInt(20)+
+                "}";
 
 
 
@@ -206,8 +223,9 @@ public class FlowsProducer {
         List<String> topicsList = null;
         boolean run = true;
 
-        int events = 100;
+        int events;
         long time = 0;
+        int times =0;
 
         Options options = new Options();
 
@@ -232,9 +250,11 @@ public class FlowsProducer {
 
         if (cmdLine.hasOption("s")) {
             events = Integer.valueOf(cmdLine.getOptionValue("s"));
-            if (events != 0)
-                time = 1000000000 / events;
-            else
+            if (events < 1000)
+                time = 1000 / events;
+            else if(events!=0) {
+                times = events/1000;
+            }else
                 time = 0;
         }
 
@@ -262,12 +282,25 @@ public class FlowsProducer {
             topicsList.add(topics);
         }
 
-
+        long metrics = 0;
+        long timeMinute =System.currentTimeMillis()/60000;
+        long newTimeMinute = 0;
         System.out.println("Producing to: " + _brokerList);
+
+        int index = 0;
         while (run) {
+
 
             if (topicsList.contains("rb_flow")) {
                 producer.send(getFlow());
+
+                metrics++;
+                newTimeMinute= System.currentTimeMillis()/60000;
+                if(timeMinute!=newTimeMinute){
+                    timeMinute=newTimeMinute;
+                    System.out.println("Flows/sec: " + metrics/60);
+                    metrics=0;
+                }
             }
             if (topicsList.contains("rb_loc")) {
                 producer.send(getLocation());
@@ -276,8 +309,17 @@ public class FlowsProducer {
                 producer.send(getEvent());
             }
 
-            Long nano = time%1000000;
-            Thread.sleep(time/1000000, nano.intValue());
+            if(times==0){
+                Thread.sleep(time);
+            }else {
+                index ++;
+            }
+
+            if(times<index){
+                Thread.sleep(1);
+                index = 0;
+            }
+
         }
 
         new HelpFormatter().printHelp(FlowsProducer.class.getCanonicalName(), options);
