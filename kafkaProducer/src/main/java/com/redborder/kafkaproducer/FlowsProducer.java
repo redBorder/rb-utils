@@ -114,8 +114,7 @@ public class FlowsProducer {
 
         String[] zonas = {"Zone X", "Zone C", "Zone A", "Zone B",
                 "Zone Y"};
-        int zonaInt =  randomX.nextInt(zonas.length);
-
+        int zonaInt = randomX.nextInt(zonas.length);
 
 
         double lat = 37.40;
@@ -146,23 +145,22 @@ public class FlowsProducer {
                 "\"client_floor\":\""+zonas[zonaInt] + " floor" +"\",\"engine_id\":"+randomX.nextInt(20)+
                 ",\"client_mac_vendor\":\"SAMSUNG ELECTRO-MECHANICS\"}";*/
 
-       String flow = "{" +
-                "\"bytes\":"+new Random().nextInt(3000)+",\"src_net_name\":\"0.0.0.0/0\",\"flow_sampler_id\":0," +
+        String flow = "{" +
+                "\"bytes\":" + new Random().nextInt(3000) + ",\"src_net_name\":\"0.0.0.0/0\",\"flow_sampler_id\":0," +
                 "\"direction\":\"ingress\"," +
-                "\"biflow_direction\":\"initiator\",\"pkts\":"+randomX.nextInt(500)+",\"dst\":\""+ getIP()+"\"," +
+                "\"biflow_direction\":\"initiator\",\"pkts\":" + randomX.nextInt(500) + ",\"dst\":\"" + getIP() + "\"," +
                 "\"type\":\"NetFlowv10\"," +
-                "\"timestamp\":" + (System.currentTimeMillis() / 1000) +"," +
-                "\"client_mac\":\""+getMac()+"\"," +
+                "\"timestamp\":" + (System.currentTimeMillis() / 1000) + "," +
+                "\"client_mac\":\"" + getMac() + "\"," +
                 "\"flow_end_reason\":\"idle timeout\",\"src_net\":\"0.0.0.0/0\"," +
                 "\"engine_id_name\":\"IANA-L4\"," +
-                "\"src\":\""+ getIP()+"\",\"application_id\":\""+randomX.nextInt(10)+":"+randomX.nextInt(100)+"\"," +
-                "\"sensor_ip\":\""+getIP()+"\"," +
-                "\"application_id_name\":\""+zonas[zonaInt]+"\",\"dst_net\":\"0.0.0.0/0\"," +
-                "\"l4_proto\":"+randomX.nextInt(10)+",\"ip_protocol_version\":4,\"dst_net_name\":\"0.0.0.0/0\"," +
+                "\"src\":\"" + getIP() + "\",\"application_id\":\"" + randomX.nextInt(10) + ":" + randomX.nextInt(100) + "\"," +
+                "\"sensor_ip\":\"" + getIP() + "\"," +
+                "\"application_id_name\":\"" + zonas[zonaInt] + "\",\"dst_net\":\"0.0.0.0/0\"," +
+                "\"l4_proto\":" + randomX.nextInt(10) + ",\"ip_protocol_version\":4,\"dst_net_name\":\"0.0.0.0/0\"," +
                 "\"sensor_name\":\"TESTING\"," +
-                "\"engine_id\":"+randomX.nextInt(20)+
+                "\"engine_id\":" + randomX.nextInt(20) +
                 "}";
-
 
 
         return new KeyedMessage<String, String>("rb_flow", flow);
@@ -170,31 +168,31 @@ public class FlowsProducer {
 
     public static KeyedMessage getEvent() {
 
-        String [] classification = {"Potential Corporate Privacy Violation", "Sensitive Data was Transmitted Across the Network", "Potentially Bad Traffic",
-        "Unknown Traffic"};
+        String[] classification = {"Potential Corporate Privacy Violation", "Sensitive Data was Transmitted Across the Network", "Potentially Bad Traffic",
+                "Unknown Traffic"};
 
-        String [] msg = {"SERVER-IIS Microsoft IIS 7.5 client verify null pointer attempt", "OS-MOBILE Android User-Agent detected", "sensitive_data: sensitive data - U.S. social security numbers without dashes"
-        , "http_inspect: OVERSIZE REQUEST-URI DIRECTORY", "OS-WINDOWS Microsoft Windows UPnP Location overflow attempt", "ssp_ssl: Invalid Client HELLO after Server HELLO Detected"};
+        String[] msg = {"SERVER-IIS Microsoft IIS 7.5 client verify null pointer attempt", "OS-MOBILE Android User-Agent detected", "sensitive_data: sensitive data - U.S. social security numbers without dashes"
+                , "http_inspect: OVERSIZE REQUEST-URI DIRECTORY", "OS-WINDOWS Microsoft Windows UPnP Location overflow attempt", "ssp_ssl: Invalid Client HELLO after Server HELLO Detected"};
 
         int classificationInt = new Random().nextInt(classification.length);
         int msgInt = new Random().nextInt(msg.length);
 
 
-        String event = "{\"timestamp\":"+(System.currentTimeMillis() / 1000)+", \"sensor_id\":7, \"type\":\"ips\", \"sensor_name\":\"rbips\", \"sensor_ip\":\"65.50.203.157\"," +
+        String event = "{\"timestamp\":" + (System.currentTimeMillis() / 1000) + ", \"sensor_id\":7, \"type\":\"ips\", \"sensor_name\":\"rbips\", \"sensor_ip\":\"65.50.203.157\"," +
                 " \"domain_name\":\"IPS\", \"group_name\":\"default\", \"group_id\":8, \"sig_generator\":1, \"sig_id\":25521," +
-                " \"rev\":3, \"priority\":\"high\", \"classification\":\""+classification[classificationInt]+"\"," +
-                " \"action\":\"alert\", \"msg\":\""+msg[msgInt]+"\"," +
+                " \"rev\":3, \"priority\":\"high\", \"classification\":\"" + classification[classificationInt] + "\"," +
+                " \"action\":\"alert\", \"msg\":\"" + msg[msgInt] + "\"," +
                 " \"payload\":\"474554202f737469636b6572732f6e6f74696669636174696f6e732e6a736f6e20485454502f312e31da557365722d4167656e743a2044616c76696b2f312e362e3020284c6" +
                 "96e75783b20553b20416e64726f696420342e342e333b20485443363530304c5657204275696c642f4b545538344c29da486f73743a20636f6e74656e742e63646e2e76696265722e63" +
                 "6f6dda436f6e6e656374696f6e3a204b6565702d416c697665da4163636570742d456e636f64696e673a20677a6970dada\", \"l4_proto\":6, " +
-                "\"src\":\""+getIP()+"\", \"src_net\":\"0.0.0.0/0\", \"src_net_name\":\"0.0.0.0/0\", \"src_as\":8121," +
-                " \"src_as_name\":\"TCH Network Services\", \"dst\":\""+getIP()+"\", \"dst_net\":\"0.0.0.0/0\"," +
+                "\"src\":\"" + getIP() + "\", \"src_net\":\"0.0.0.0/0\", \"src_net_name\":\"0.0.0.0/0\", \"src_as\":8121," +
+                " \"src_as_name\":\"TCH Network Services\", \"dst\":\"" + getIP() + "\", \"dst_net\":\"0.0.0.0/0\"," +
                 " \"dst_net_name\":\"0.0.0.0/0\", \"dst_as\":2914, \"dst_as_name\":\"NTT America, Inc.\"," +
-                " \"src_port\":92, \"dst_port\":80, \"ethsrc\":\""+getMac()+"\", " +
-                "\"ethdst\":\""+getMac()+"\", \"ethlength\":264," +
+                " \"src_port\":92, \"dst_port\":80, \"ethsrc\":\"" + getMac() + "\", " +
+                "\"ethdst\":\"" + getMac() + "\", \"ethlength\":264," +
                 " \"ethlength_range\":\"(256-512]\", \"tcpflags\":\"***AP***\"," +
                 " \"tcpseq\":432143985, \"tcpack\":3505747298, \"tcplen\":32, " +
-                "\"tcpwindow\":229, \"ttl\":"+new Random().nextInt(120)+", \"tos\":0, \"id\":31461, " +
+                "\"tcpwindow\":229, \"ttl\":" + new Random().nextInt(120) + ", \"tos\":0, \"id\":31461, " +
                 "\"dgmlen\":250, \"iplen\":256000, \"iplen_range\":\"[131072-262144)\"," +
                 " \"src_country\":\"United States\", \"dst_country\":\"United States\"," +
                 " \"src_country_code\":\"US\", \"dst_country_code\":\"US\", \"ethsrc_vendor\":\"Cisco\", \"ethdst_vendor\":\"Cisco\"}";
@@ -206,15 +204,12 @@ public class FlowsProducer {
     public static void main(String[] args) throws InterruptedException {
 
 
-
-        Runtime.getRuntime().addShutdownHook(new Thread()
-        {
+        Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
-            public void run()
-            {
-                if(producer!=null)
+            public void run() {
+                if (producer != null)
                     producer.close();
-                
+
                 System.out.println("Shutdown!");
             }
         });
@@ -225,7 +220,7 @@ public class FlowsProducer {
 
         int events;
         long time = 0;
-        int times =0;
+        int times = 0;
 
         Options options = new Options();
 
@@ -250,11 +245,11 @@ public class FlowsProducer {
 
         if (cmdLine.hasOption("s")) {
             events = Integer.valueOf(cmdLine.getOptionValue("s"));
-            if (events < 1000)
+            if (events != 0)
+                times = events / 1000;
+            else if (events < 1000) {
                 time = 1000 / events;
-            else if(events!=0) {
-                times = events/1000;
-            }else
+            } else
                 time = 0;
         }
 
@@ -283,7 +278,7 @@ public class FlowsProducer {
         }
 
         long metrics = 0;
-        long timeMinute =System.currentTimeMillis()/60000;
+        long timeMinute = System.currentTimeMillis() / 60000;
         long newTimeMinute = 0;
         System.out.println("Producing to: " + _brokerList);
 
@@ -295,11 +290,11 @@ public class FlowsProducer {
                 producer.send(getFlow());
 
                 metrics++;
-                newTimeMinute= System.currentTimeMillis()/60000;
-                if(timeMinute!=newTimeMinute){
-                    timeMinute=newTimeMinute;
-                    System.out.println("Flows/sec: " + metrics/60);
-                    metrics=0;
+                newTimeMinute = System.currentTimeMillis() / 60000;
+                if (timeMinute != newTimeMinute) {
+                    timeMinute = newTimeMinute;
+                    System.out.println("Flows/sec: " + metrics / 60);
+                    metrics = 0;
                 }
             }
             if (topicsList.contains("rb_loc")) {
@@ -309,13 +304,13 @@ public class FlowsProducer {
                 producer.send(getEvent());
             }
 
-            if(times==0){
+            if (times == 0) {
                 Thread.sleep(time);
-            }else {
-                index ++;
+            } else {
+                index++;
             }
 
-            if(times<index){
+            if (times < index) {
                 Thread.sleep(1);
                 index = 0;
             }
@@ -392,7 +387,6 @@ public class FlowsProducer {
 
         client.close();
     }
-
 
 
 }
