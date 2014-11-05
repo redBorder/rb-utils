@@ -245,10 +245,10 @@ public class FlowsProducer {
 
         if (cmdLine.hasOption("s")) {
             events = Integer.valueOf(cmdLine.getOptionValue("s"));
-            if (events != 0)
-                times = events / 1000;
-            else if (events < 1000) {
+            if (events < 1000 && events != 0 )
                 time = 1000 / events;
+            else if (events != 0) {
+                times = events / 1000;
             } else
                 time = 0;
         }
