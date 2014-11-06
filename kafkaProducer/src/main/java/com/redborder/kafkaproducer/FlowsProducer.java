@@ -227,6 +227,7 @@ public class FlowsProducer {
         options.addOption("zk", true, "Zookeeper servers.");
         options.addOption("topics", true, "Topics [rb_flow, rb_loc].");
         options.addOption("s", true, "Time to sleep (milliseconds) [Default: 0].");
+        options.addOption("b", true, "Brokers to send.");
         options.addOption("h", "help", false, "Print help.");
 
 
@@ -245,7 +246,7 @@ public class FlowsProducer {
 
         if (cmdLine.hasOption("s")) {
             events = Integer.valueOf(cmdLine.getOptionValue("s"));
-            if (events < 1000 && events != 0 )
+            if (events < 1000 && events != 0)
                 time = 1000 / events;
             else if (events != 0) {
                 times = events / 1000;
@@ -254,13 +255,18 @@ public class FlowsProducer {
         }
 
 
-        if (!(cmdLine.hasOption("zk") && cmdLine.hasOption("topics"))) {
-            System.out.println("You must specify zk and topics");
+        if (!cmdLine.hasOption("topics")) {
+            System.out.println("You must specify topics");
             new HelpFormatter().printHelp(FlowsProducer.class.getCanonicalName(), options);
             return;
         }
 
-        configProducer(cmdLine.getOptionValue("zk"));
+        if (!cmdLine.hasOption("b")) {
+            configProducer(cmdLine.getOptionValue("zk"), false);
+        } else {
+            _brokerList = cmdLine.getOptionValue("b");
+            configProducer(cmdLine.getOptionValue("zk"), true);
+        }
         String topics = cmdLine.getOptionValue("topics");
 
         if (!(topics.contains("rb_flow") || topics.contains("rb_loc") || topics.contains("rb_event"))) {
@@ -322,56 +328,58 @@ public class FlowsProducer {
     }
 
 
-    public static void configProducer(String zookeeper) {
+    public static void configProducer(String zookeeper, boolean broker) {
 
+        if (!broker) {
 
-        RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
-        CuratorFramework client = CuratorFrameworkFactory.newClient(zookeeper, retryPolicy);
-        client.start();
+            RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
+            CuratorFramework client = CuratorFrameworkFactory.newClient(zookeeper, retryPolicy);
+            client.start();
 
-        List<String> ids = null;
-        boolean first = true;
-
-        try {
-            ids = client.getChildren().forPath("/brokers/ids");
-        } catch (Exception ex) {
-            Logger.getLogger(FlowsProducer.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-        for (String id : ids) {
-            String jsonString = null;
+            List<String> ids = null;
+            boolean first = true;
 
             try {
-                jsonString = new String(client.getData().forPath("/brokers/ids/" + id), "UTF-8");
+                ids = client.getChildren().forPath("/brokers/ids");
             } catch (Exception ex) {
                 Logger.getLogger(FlowsProducer.class.getName()).log(Level.SEVERE, null, ex);
             }
 
-            if (jsonString != null) {
-                ObjectMapper mapper = new ObjectMapper();
-                Map<String, Object> json = null;
+            for (String id : ids) {
+                String jsonString = null;
 
                 try {
-                    json = mapper.readValue(jsonString, Map.class);
+                    jsonString = new String(client.getData().forPath("/brokers/ids/" + id), "UTF-8");
+                } catch (Exception ex) {
+                    Logger.getLogger(FlowsProducer.class.getName()).log(Level.SEVERE, null, ex);
+                }
 
-                    if (first) {
-                        _brokerList = _brokerList.concat(json.get("host") + ":" + json.get("port"));
-                        first = false;
-                    } else {
-                        _brokerList = _brokerList.concat("," + json.get("host") + ":" + json.get("port"));
+                if (jsonString != null) {
+                    ObjectMapper mapper = new ObjectMapper();
+                    Map<String, Object> json = null;
+
+                    try {
+                        json = mapper.readValue(jsonString, Map.class);
+
+                        if (first) {
+                            _brokerList = _brokerList.concat(json.get("host") + ":" + json.get("port"));
+                            first = false;
+                        } else {
+                            _brokerList = _brokerList.concat("," + json.get("host") + ":" + json.get("port"));
+                        }
+                    } catch (NullPointerException e) {
+                        Logger.getLogger(FlowsProducer.class.getName()).log(Level.SEVERE, "Failed converting a JSON tuple to a Map class", e);
+                    } catch (JsonMappingException e) {
+                        Logger.getLogger(FlowsProducer.class.getName()).log(Level.SEVERE, "Failed converting a JSON tuple to a Map class", e);
+                    } catch (JsonParseException e) {
+                        Logger.getLogger(FlowsProducer.class.getName()).log(Level.SEVERE, "Failed converting a JSON tuple to a Map class", e);
+                    } catch (IOException e) {
+                        Logger.getLogger(FlowsProducer.class.getName()).log(Level.SEVERE, "Failed converting a JSON tuple to a Map class", e);
                     }
-                } catch (NullPointerException e) {
-                    Logger.getLogger(FlowsProducer.class.getName()).log(Level.SEVERE, "Failed converting a JSON tuple to a Map class", e);
-                } catch (JsonMappingException e) {
-                    Logger.getLogger(FlowsProducer.class.getName()).log(Level.SEVERE, "Failed converting a JSON tuple to a Map class", e);
-                } catch (JsonParseException e) {
-                    Logger.getLogger(FlowsProducer.class.getName()).log(Level.SEVERE, "Failed converting a JSON tuple to a Map class", e);
-                } catch (IOException e) {
-                    Logger.getLogger(FlowsProducer.class.getName()).log(Level.SEVERE, "Failed converting a JSON tuple to a Map class", e);
                 }
             }
+            client.close();
         }
-
         Properties props = new Properties();
         props.put("metadata.broker.list", _brokerList);
         props.put("serializer.class", "kafka.serializer.StringEncoder");
@@ -385,7 +393,6 @@ public class FlowsProducer {
         ProducerConfig config = new ProducerConfig(props);
         producer = new Producer<String, String>(config);
 
-        client.close();
     }
 
 
