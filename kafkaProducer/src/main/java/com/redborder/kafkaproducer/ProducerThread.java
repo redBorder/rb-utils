@@ -28,6 +28,7 @@ public class ProducerThread extends Thread {
     long time = 0;
     int times = 0;
     String _brokerList = new String("");
+    Integer id ;
 
     List<String> topicsList = null;
     Producer<String, String> producer;
@@ -37,11 +38,12 @@ public class ProducerThread extends Thread {
     int index = 0;
 
 
-    public ProducerThread(String zookeeper, String topic, String brokerList, Integer events) {
+    public ProducerThread(String zookeeper, String topic, String brokerList, Integer events, Integer id) {
         this.zookeeper = zookeeper;
         this.topics = topic;
         this._brokerList = brokerList;
         this.events=events;
+        this.id=id;
     }
 
     public void terminate(){
@@ -58,7 +60,7 @@ public class ProducerThread extends Thread {
         }
 
 
-        System.out.println("[ ThreadNumber: "+ Thread.currentThread().getId() + " ] Producing to: " + _brokerList);
+        System.out.printf("[ ThreadNumber: %3d ] Producing to:  %s \n" , id, _brokerList);
 
 
         if (topics.contains(","))
@@ -90,7 +92,7 @@ public class ProducerThread extends Thread {
                 newTimeMinute = System.currentTimeMillis() / 60000;
                 if (timeMinute != newTimeMinute) {
                     timeMinute = newTimeMinute;
-                    System.out.println("[ ThreadNumber: "+Thread.currentThread().getId()+" ] Flows/sec: " + metrics / 60);
+                    System.out.printf("[ ThreadNumber: %3d ] Flows/sec:  %5d \n", id, (metrics / 60));
                     metrics = 0;
                 }
             }

@@ -31,10 +31,13 @@ public class FlowsProducer {
 
         Options options = new Options();
 
+        Integer partitions = 1;
+
         options.addOption("zk", true, "Zookeeper servers.");
         options.addOption("topics", true, "Topics [rb_flow, rb_loc].");
-        options.addOption("s", true, "Time to sleep (milliseconds) [Default: 0].");
+        options.addOption("s", true, "Flows per seconds per thread.");
         options.addOption("b", true, "Brokers to send.");
+        options.addOption("p", true, "Number of threads.");
         options.addOption("h", "help", false, "Print help.");
 
 
@@ -71,12 +74,16 @@ public class FlowsProducer {
             return;
         }
 
-        for(int i=0; i<4;i++) {
+        if(cmdLine.hasOption("p")){
+            partitions=Integer.valueOf(cmdLine.getOptionValue("p"));
+        }
+
+        for(int i=0; i<partitions;i++) {
 
             if (!cmdLine.hasOption("b")) {
-                threads.add(new ProducerThread(cmdLine.getOptionValue("zk"), topics, "", events));
+                threads.add(new ProducerThread(cmdLine.getOptionValue("zk"), topics, "", events, i));
             } else {
-                threads.add(new ProducerThread(cmdLine.getOptionValue("zk"), topics, cmdLine.getOptionValue("b"), events));
+                threads.add(new ProducerThread(cmdLine.getOptionValue("zk"), topics, cmdLine.getOptionValue("b"), events, i));
 
             }
 
