@@ -81,18 +81,18 @@ public class ProducerThread extends Thread {
             time = 0;
 
         long metrics = 0;
-        long timeMinute = System.currentTimeMillis() / 60000;
-        long newTimeMinute = 0;
+        long timeSeconds = System.currentTimeMillis() / 1000;
+        long newTimeSeconds = 0;
 
         while (run) {
             if (topicsList.contains("rb_flow")) {
                 producer.send(getFlow());
 
                 metrics++;
-                newTimeMinute = System.currentTimeMillis() / 60000;
-                if (timeMinute != newTimeMinute) {
-                    timeMinute = newTimeMinute;
-                    System.out.printf("[ ThreadNumber: %3d ] Flows/sec:  %5d \n", id, (metrics / 60));
+                newTimeSeconds = System.currentTimeMillis() / 1000;
+                if ((timeSeconds+10) <= newTimeSeconds) {
+                    timeSeconds = newTimeSeconds;
+                    System.out.printf("[ ThreadNumber: %3d ] Flows/sec:  %5d \n", id, (metrics / 10));
                     metrics = 0;
                 }
             }
