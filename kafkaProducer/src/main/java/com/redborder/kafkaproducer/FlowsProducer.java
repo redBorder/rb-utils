@@ -38,6 +38,7 @@ public class FlowsProducer {
         options.addOption("s", true, "Flows per seconds per thread.");
         options.addOption("b", true, "Brokers to send.");
         options.addOption("p", true, "Number of threads.");
+        options.addOption("e", "enrichment", true, "Active enrichment.");
         options.addOption("h", "help", false, "Print help.");
 
 
@@ -78,12 +79,18 @@ public class FlowsProducer {
             partitions=Integer.valueOf(cmdLine.getOptionValue("p"));
         }
 
+        boolean enrich = true;
+
+        if(cmdLine.hasOption("e")){
+            enrich=Boolean.valueOf(cmdLine.getOptionValue("e"));
+        }
+
         for(int i=0; i<partitions;i++) {
 
             if (!cmdLine.hasOption("b")) {
-                threads.add(new ProducerThread(cmdLine.getOptionValue("zk"), topics, "", events, i));
+                threads.add(new ProducerThread(cmdLine.getOptionValue("zk"), topics, "", events, i, enrich));
             } else {
-                threads.add(new ProducerThread(cmdLine.getOptionValue("zk"), topics, cmdLine.getOptionValue("b"), events, i));
+                threads.add(new ProducerThread(cmdLine.getOptionValue("zk"), topics, cmdLine.getOptionValue("b"), events, i, enrich));
 
             }
 

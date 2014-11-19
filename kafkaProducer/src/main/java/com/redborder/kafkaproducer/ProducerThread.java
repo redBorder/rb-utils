@@ -28,7 +28,8 @@ public class ProducerThread extends Thread {
     long time = 0;
     int times = 0;
     String _brokerList = new String("");
-    Integer id ;
+    Integer id;
+    boolean enrich = true;
 
     List<String> topicsList = null;
     Producer<String, String> producer;
@@ -38,16 +39,17 @@ public class ProducerThread extends Thread {
     int index = 0;
 
 
-    public ProducerThread(String zookeeper, String topic, String brokerList, Integer events, Integer id) {
+    public ProducerThread(String zookeeper, String topic, String brokerList, Integer events, Integer id, boolean enrich) {
         this.zookeeper = zookeeper;
         this.topics = topic;
         this._brokerList = brokerList;
-        this.events=events;
-        this.id=id;
+        this.events = events;
+        this.id = id;
+        this.enrich = enrich;
     }
 
-    public void terminate(){
-        run=false;
+    public void terminate() {
+        run = false;
         producer.close();
     }
 
@@ -60,7 +62,7 @@ public class ProducerThread extends Thread {
         }
 
 
-        System.out.printf("[ ThreadNumber: %3d ] Producing to:  %s \n" , id, _brokerList);
+        System.out.printf("[ ThreadNumber: %3d ] Producing to:  %s \n", id, _brokerList);
 
 
         if (topics.contains(","))
@@ -74,8 +76,7 @@ public class ProducerThread extends Thread {
 
         if (events < 1000 && events != 0) {
             time = 1000 / events;
-        }
-        else if (events != 0) {
+        } else if (events != 0) {
             times = events / 1000;
         } else
             time = 0;
@@ -90,7 +91,7 @@ public class ProducerThread extends Thread {
 
                 metrics++;
                 newTimeSeconds = System.currentTimeMillis() / 1000;
-                if ((timeSeconds+10) <= newTimeSeconds) {
+                if ((timeSeconds + 10) <= newTimeSeconds) {
                     timeSeconds = newTimeSeconds;
                     System.out.printf("[ ThreadNumber: %3d ] Flows/sec:  %5d \n", id, (metrics / 10));
                     metrics = 0;
@@ -231,7 +232,7 @@ public class ProducerThread extends Thread {
         return ip[ips];
     }
 
-    public  KeyedMessage getLocation() {
+    public KeyedMessage getLocation() {
 
 
         String[] status = {"ASSOCIATED", "PROBING", "UNKNOWN"};
@@ -272,7 +273,7 @@ public class ProducerThread extends Thread {
         return new KeyedMessage<String, String>("rb_loc", loc);
     }
 
-    public  KeyedMessage getFlow() {
+    public KeyedMessage getFlow() {
 
         String[] status = {"ASSOCIATED", "PROBING", "UNKNOWN"};
         int statusInt = randomX.nextInt(status.length);
@@ -289,43 +290,44 @@ public class ProducerThread extends Thread {
         double random2 = randomX.nextInt(100);
         double randomOk = random / 100;
         double random1k = random2 / 100;
+        String flow = null;
 
 
-
-       /* String flow = "{\"client_latlong\":\""+(lat + randomOk)+","+(lon - random1k)+"\"," +
-                "\"dst_country_code\":\"US\",\"dot11_status\":\""+status[statusInt]+"\"," +
-                "\"bytes\":"+new Random().nextInt(3000)+",\"src_net_name\":\"0.0.0.0/0\",\"flow_sampler_id\":0," +
-                "\"direction\":\"ingress\",\"wireless_station\":\""+getAPmac()+"\"," +
-                "\"biflow_direction\":\"initiator\",\"pkts\":"+randomX.nextInt(500)+",\"dst\":\""+ getIP()+"\"," +
-                "\"type\":\"NetFlowv10\",\"client_campus\":\""+zonas[zonaInt]+" campus"+"\"," +
-                "\"client_building\":\""+zonas[zonaInt]+ " building"+"\",\"timestamp\":" + (System.currentTimeMillis() / 1000) +"," +
-                "\"client_mac\":\""+getMac()+"\",\"wireless_id\":\""+getSSID()+"\"," +
-                "\"flow_end_reason\":\"idle timeout\",\"src_net\":\"0.0.0.0/0\"," +
-                "\"client_rssi_num\":"+(-randomX.nextInt(80))+",\"engine_id_name\":\"IANA-L4\"," +
-                "\"src\":\""+ getIP()+"\",\"application_id\":\""+randomX.nextInt(10)+":"+randomX.nextInt(100)+"\"," +
-                "\"sensor_ip\":\""+getIP()+"\"," +
-                "\"application_id_name\":\""+zonas[zonaInt]+"\",\"dst_net\":\"0.0.0.0/0\"," +
-                "\"l4_proto\":"+randomX.nextInt(10)+",\"ip_protocol_version\":4,\"dst_net_name\":\"0.0.0.0/0\"," +
-                "\"sensor_name\":\"ISG\",\"src_country_code\":\"US\"," +
-                "\"client_floor\":\""+zonas[zonaInt] + " floor" +"\",\"engine_id\":"+randomX.nextInt(20)+
-                ",\"client_mac_vendor\":\"SAMSUNG ELECTRO-MECHANICS\"}";*/
-
-        String flow = "{" +
-                "\"bytes\":" + new Random().nextInt(3000) + ",\"src_net_name\":\"0.0.0.0/0\",\"flow_sampler_id\":0," +
-                "\"direction\":\"ingress\"," +
-                "\"biflow_direction\":\"initiator\",\"pkts\":" + randomX.nextInt(500) + ",\"dst\":\"" + getIP() + "\"," +
-                "\"type\":\"NetFlowv10\"," +
-                "\"timestamp\":" + (System.currentTimeMillis() / 1000) + "," +
-                "\"client_mac\":\"" + getMac() + "\"," +
-                "\"flow_end_reason\":\"idle timeout\",\"src_net\":\"0.0.0.0/0\"," +
-                "\"engine_id_name\":\"IANA-L4\"," +
-                "\"src\":\"" + getIP() + "\",\"application_id\":\"" + randomX.nextInt(10) + ":" + randomX.nextInt(100) + "\"," +
-                "\"sensor_ip\":\"" + getIP() + "\"," +
-                "\"application_id_name\":\"" + zonas[zonaInt] + "\",\"dst_net\":\"0.0.0.0/0\"," +
-                "\"l4_proto\":" + randomX.nextInt(10) + ",\"ip_protocol_version\":4,\"dst_net_name\":\"0.0.0.0/0\"," +
-                "\"sensor_name\":\"TESTING\"," +
-                "\"engine_id\":" + randomX.nextInt(20) +
-                "}";
+        if (enrich)
+            flow = "{\"client_latlong\":\"" + (lat + randomOk) + "," + (lon - random1k) + "\"," +
+                    "\"dst_country_code\":\"US\",\"dot11_status\":\"" + status[statusInt] + "\"," +
+                    "\"bytes\":" + new Random().nextInt(3000) + ",\"src_net_name\":\"0.0.0.0/0\",\"flow_sampler_id\":0," +
+                    "\"direction\":\"ingress\",\"wireless_station\":\"" + getAPmac() + "\"," +
+                    "\"biflow_direction\":\"initiator\",\"pkts\":" + randomX.nextInt(500) + ",\"dst\":\"" + getIP() + "\"," +
+                    "\"type\":\"NetFlowv10\",\"client_campus\":\"" + zonas[zonaInt] + " campus" + "\"," +
+                    "\"client_building\":\"" + zonas[zonaInt] + " building" + "\",\"timestamp\":" + (System.currentTimeMillis() / 1000) + "," +
+                    "\"client_mac\":\"" + getMac() + "\",\"wireless_id\":\"" + getSSID() + "\"," +
+                    "\"flow_end_reason\":\"idle timeout\",\"src_net\":\"0.0.0.0/0\"," +
+                    "\"client_rssi_num\":" + (-randomX.nextInt(80)) + ",\"engine_id_name\":\"IANA-L4\"," +
+                    "\"src\":\"" + getIP() + "\",\"application_id\":\"" + randomX.nextInt(10) + ":" + randomX.nextInt(100) + "\"," +
+                    "\"sensor_ip\":\"" + getIP() + "\"," +
+                    "\"application_id_name\":\"" + zonas[zonaInt] + "\",\"dst_net\":\"0.0.0.0/0\"," +
+                    "\"l4_proto\":" + randomX.nextInt(10) + ",\"ip_protocol_version\":4,\"dst_net_name\":\"0.0.0.0/0\"," +
+                    "\"sensor_name\":\"ISG\",\"src_country_code\":\"US\"," +
+                    "\"client_floor\":\"" + zonas[zonaInt] + " floor" + "\",\"engine_id\":" + randomX.nextInt(20) +
+                    ",\"client_mac_vendor\":\"SAMSUNG ELECTRO-MECHANICS\"}";
+        else
+            flow = "{" +
+                    "\"bytes\":" + new Random().nextInt(3000) + ",\"src_net_name\":\"0.0.0.0/0\",\"flow_sampler_id\":0," +
+                    "\"direction\":\"ingress\"," +
+                    "\"biflow_direction\":\"initiator\",\"pkts\":" + randomX.nextInt(500) + ",\"dst\":\"" + getIP() + "\"," +
+                    "\"type\":\"NetFlowv10\"," +
+                    "\"timestamp\":" + (System.currentTimeMillis() / 1000) + "," +
+                    "\"client_mac\":\"" + getMac() + "\"," +
+                    "\"flow_end_reason\":\"idle timeout\",\"src_net\":\"0.0.0.0/0\"," +
+                    "\"engine_id_name\":\"IANA-L4\"," +
+                    "\"src\":\"" + getIP() + "\",\"application_id\":\"" + randomX.nextInt(10) + ":" + randomX.nextInt(100) + "\"," +
+                    "\"sensor_ip\":\"" + getIP() + "\"," +
+                    "\"application_id_name\":\"" + zonas[zonaInt] + "\",\"dst_net\":\"0.0.0.0/0\"," +
+                    "\"l4_proto\":" + randomX.nextInt(10) + ",\"ip_protocol_version\":4,\"dst_net_name\":\"0.0.0.0/0\"," +
+                    "\"sensor_name\":\"TESTING\"," +
+                    "\"engine_id\":" + randomX.nextInt(20) +
+                    "}";
 
 
         return new KeyedMessage<String, String>("rb_flow", flow);
