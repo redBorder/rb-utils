@@ -70,7 +70,7 @@ public class FlowsProducer {
 
         String topics = cmdLine.getOptionValue("topics");
 
-        if (!(topics.contains("rb_flow") || topics.contains("rb_loc") || topics.contains("rb_event"))) {
+        if (!(topics.contains("rb_flow") || topics.contains("rb_loc") || topics.contains("rb_event") || topics.contains("rb_social"))) {
             System.out.println("Available topics: rb_flow   rb_loc   rb_event");
             return;
         }

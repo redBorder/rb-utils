@@ -100,6 +100,10 @@ public class ProducerThread extends Thread {
             if (topicsList.contains("rb_loc")) {
                 producer.send(getLocation());
             }
+
+            if (topicsList.contains("rb_social")) {
+                producer.send(getSocial());
+            }
             if (topicsList.contains("rb_event")) {
                 producer.send(getEvent());
             }
@@ -365,5 +369,61 @@ public class ProducerThread extends Thread {
                 " \"src_country_code\":\"US\", \"dst_country_code\":\"US\", \"ethsrc_vendor\":\"Cisco\", \"ethdst_vendor\":\"Cisco\"}";
 
         return new KeyedMessage<String, String>("rb_event", event);
+    }
+
+    public String getUser(){
+        String[] user = {"andres", "pepe", "jaime", "pablo", "carlos", "jota", "clara", "raquel", "eu", "carlosR", "angel"};
+        int users = new Random().nextInt(user.length);
+        return user[users];
+    }
+
+    public String getGender(){
+        String[] gender = {"male", "female"};
+        int genders = new Random().nextInt(gender.length);
+        return gender[genders];
+    }
+
+    public String getLang(){
+        String[] lang = {"es", "us", "en", "rs", "fr", "xs", "lm", "cy", "pe", "ab", "er"};
+        int langs = new Random().nextInt(lang.length);
+        return lang[langs];
+    }
+
+    public String getType(){
+        String[] type = {"twitter", "facebook",};
+        int types = new Random().nextInt(type.length);
+        return type[types];
+    }
+
+    public String getDevice(){
+        String[] device = {"Iphone", "Acer", "MacBookPro", "iMac", "LG"};
+        int devices = new Random().nextInt(device.length);
+        return device[devices];
+    }
+
+    public  KeyedMessage getSocial(){
+
+        double lat = 37.40;
+        double lon = 26.97;
+
+        double random = randomX.nextInt(100);
+        double random2 = randomX.nextInt(100);
+        double randomOk = random / 100;
+        double random1k = random2 / 100;
+
+        int id = 136447 * randomX.nextInt(100000);
+
+
+
+
+        String type = getType();
+        String social = "{\"sensor_name\": \"rb_social\"," +
+                " \"type\":\""+type+"\"," +
+                " \"username\":\""+getUser()+"\", \"avatar\":\"http://a2.twimg.com/profile_images/1302306721/twitterpic_normal.jpg\"," +
+                " \"link\":\"http://"+type+".com/statuses/"+id+"\"," +
+                " \"timestamp\": "+ (System.currentTimeMillis() / 1000)  +", \"msg\": \"(content)\", \"client_latlong\":\""+ (lat + randomOk) + "," + (lon - random1k) +"\"," +
+                " \"device\": \""+getDevice()+"\", \"gender\":\""+getGender()+"\", \"sentiment\": "+randomX.nextInt(10)+", \"language\": \" " + getLang() + "\"}";
+
+        return new KeyedMessage<String, String>("rb_social", social);
     }
 }
