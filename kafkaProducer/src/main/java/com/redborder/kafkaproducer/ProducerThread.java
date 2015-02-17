@@ -304,7 +304,7 @@ public class ProducerThread extends Thread {
                     "\"direction\":\"ingress\",\"wireless_station\":\"" + getAPmac() + "\"," +
                     "\"biflow_direction\":\"initiator\",\"pkts\":" + randomX.nextInt(500) + ",\"dst\":\"" + getIP() + "\"," +
                     "\"type\":\"NetFlowv10\",\"client_campus\":\"" + zonas[zonaInt] + " campus" + "\"," +
-                    "\"client_building\":\"" + zonas[zonaInt] + " building" + "\",\"timestamp\":" + (System.currentTimeMillis() / 1000) + "," +
+                    "\"client_building\":\"" + zonas[zonaInt] + " building" + "\",\"timestamp\":"  + ((System.currentTimeMillis() / 1000)) + "," +
                     "\"client_mac\":\"" + getMac() + "\",\"wireless_id\":\"" + getSSID() + "\"," +
                     "\"flow_end_reason\":\"idle timeout\",\"src_net\":\"0.0.0.0/0\"," +
                     "\"client_rssi_num\":" + (-randomX.nextInt(80)) + ",\"engine_id_name\":\"IANA-L4\"," +
@@ -314,7 +314,7 @@ public class ProducerThread extends Thread {
                     "\"l4_proto\":" + randomX.nextInt(10) + ",\"ip_protocol_version\":4,\"dst_net_name\":\"0.0.0.0/0\"," +
                     "\"sensor_name\":\"ISG\",\"src_country_code\":\"US\"," +
                     "\"client_floor\":\"" + zonas[zonaInt] + " floor" + "\",\"engine_id\":" + randomX.nextInt(20) +
-                    ",\"client_mac_vendor\":\"SAMSUNG ELECTRO-MECHANICS\"}";
+                    ",\"client_mac_vendor\":\"SAMSUNG ELECTRO-MECHANICS\", \"first_switched\": " + ((System.currentTimeMillis() / 1000)-(10 *60))+"}";
         else
             flow = "{" +
                     "\"bytes\":" + new Random().nextInt(3000) + ",\"src_net_name\":\"0.0.0.0/0\",\"flow_sampler_id\":0," +
@@ -349,7 +349,7 @@ public class ProducerThread extends Thread {
         int msgInt = new Random().nextInt(msg.length);
 
 
-        String event = "{\"timestamp\":" + (System.currentTimeMillis() / 1000) + ", \"sensor_id\":7, \"type\":\"ips\", \"sensor_name\":\"rbips\", \"sensor_ip\":\"65.50.203.157\"," +
+        String event = "{\"timestamp\":" + ((System.currentTimeMillis() / 1000) +(10 *60)) + ", \"sensor_id\":7, \"type\":\"ips\", \"sensor_name\":\"rbips\", \"sensor_ip\":\"65.50.203.157\"," +
                 " \"domain_name\":\"IPS\", \"group_name\":\"default\", \"group_id\":8, \"sig_generator\":1, \"sig_id\":25521," +
                 " \"rev\":3, \"priority\":\"high\", \"classification\":\"" + classification[classificationInt] + "\"," +
                 " \"action\":\"alert\", \"msg\":\"" + msg[msgInt] + "\"," +
@@ -366,7 +366,7 @@ public class ProducerThread extends Thread {
                 "\"tcpwindow\":229, \"ttl\":" + new Random().nextInt(120) + ", \"tos\":0, \"id\":31461, " +
                 "\"dgmlen\":250, \"iplen\":256000, \"iplen_range\":\"[131072-262144)\"," +
                 " \"src_country\":\"United States\", \"dst_country\":\"United States\"," +
-                " \"src_country_code\":\"US\", \"dst_country_code\":\"US\", \"ethsrc_vendor\":\"Cisco\", \"ethdst_vendor\":\"Cisco\"}";
+                " \"src_country_code\":\"US\", \"dst_country_code\":\"US\", \"ethsrc_vendor\":\"Cisco\", \"ethdst_vendor\":\"Cisco\", \"first_switched\": " + (System.currentTimeMillis() / 1000)+"}";
 
         return new KeyedMessage<String, String>("rb_event", event);
     }
