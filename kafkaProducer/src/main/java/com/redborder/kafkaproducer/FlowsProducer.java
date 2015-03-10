@@ -184,7 +184,7 @@ public class FlowsProducer {
                                     list.add(content);
                                     event.put("notifications", list);
 
-                                } else if (cmdLine.getOptionValue("topics").contains("rb_flow")) {
+                                } else {
                                     event.put("timestamp", localTimestamp);
                                 }
                                 if (event.containsKey("first_switched"))
@@ -202,6 +202,7 @@ public class FlowsProducer {
                                 Long toSleep = 0L;
 
                                 if (remoteTimestamp + delta > System.currentTimeMillis() / 1000 * millis) {
+                                    produces++;
                                     toSleep = (remoteTimestamp + delta - System.currentTimeMillis() / 1000 * millis) * 1000;
                                     System.out.printf("%-10s  %-17s  %-10s \n", DateTime.now().toString(), " Produced: " + produces, " Sleep: " + toSleep / 1000 + " secs");
                                     produces = 0L;
@@ -217,7 +218,7 @@ public class FlowsProducer {
                                     list.add(content);
                                     event.put("notifications", list);
 
-                                } else if (cmdLine.getOptionValue("topics").contains("rb_flow")) {
+                                } else {
                                     event.put("timestamp", System.currentTimeMillis() / 1000 * millis);
                                 }
 
