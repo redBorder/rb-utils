@@ -154,6 +154,8 @@ public class FlowsProducer {
 
             }
 
+            long produces = 0L;
+
             while (loop) {
                 try {
                     BufferedReader br = new BufferedReader(new FileReader(cmdLine.getOptionValue("i")));
@@ -175,7 +177,11 @@ public class FlowsProducer {
                                 Long toSleep = 0L;
                                 if (remoteTimestamp + delta > System.currentTimeMillis() / 1000 * millis) {
                                     toSleep = (remoteTimestamp + delta - System.currentTimeMillis() / 1000 * millis) * 1000;
+                                    System.out.printf("%-10s  %-17s  %-10s", DateTime.now().toString()," Produced: "+produces, " Sleep: "+ toSleep/1000 +" secs");
+                                    produces = 0L;
                                     Thread.sleep(toSleep);
+                                }else{
+                                    produces++;
                                 }
 
                                // System.out.println(new DateTime(remoteTimestamp*1000) + "  " + new DateTime(System.currentTimeMillis() / 1000 * millis*1000));
