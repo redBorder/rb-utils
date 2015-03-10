@@ -181,10 +181,12 @@ public class FlowsProducer {
                                     List<Map<String, Object>> list = (ArrayList) event.get("notifications");
                                     Map<String, Object> content = list.remove(0);
                                     content.put("timestamp", localTimestamp);
+                                    content.put("time_original", remoteTimestamp);
                                     list.add(content);
                                     event.put("notifications", list);
 
                                 } else {
+                                    event.put("time_original", remoteTimestamp);
                                     event.put("timestamp", localTimestamp);
                                 }
                                 if (event.containsKey("first_switched"))
@@ -215,10 +217,12 @@ public class FlowsProducer {
                                     List<Map<String, Object>> list = (ArrayList) event.get("notifications");
                                     Map<String, Object> content = list.remove(0);
                                     content.put("timestamp", System.currentTimeMillis() / 1000 * millis);
+                                    content.put("time_original", remoteTimestamp);
                                     list.add(content);
                                     event.put("notifications", list);
 
                                 } else {
+                                    event.put("time_original", remoteTimestamp);
                                     event.put("timestamp", System.currentTimeMillis() / 1000 * millis);
                                 }
 
