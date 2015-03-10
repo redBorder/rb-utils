@@ -166,7 +166,7 @@ public class FlowsProducer {
                                 Long remoteTimestamp = Long.valueOf(String.valueOf(event.get("timestamp")));
                                 Long localTimestamp = System.currentTimeMillis() / 1000 * millis;
                                 delta = localTimestamp - remoteTimestamp;
-                                System.out.println(new DateTime(remoteTimestamp*1000) + "  " + new DateTime(localTimestamp*1000));
+                                //System.out.println(new DateTime(remoteTimestamp*1000) + "  " + new DateTime(localTimestamp*1000));
                                 event.put("timestamp", localTimestamp);
                                 if (event.containsKey("first_switched"))
                                     event.put("first_switched", Long.valueOf(String.valueOf(event.get("first_switched"))) + delta);
@@ -178,7 +178,7 @@ public class FlowsProducer {
                                     Thread.sleep(toSleep);
                                 }
 
-                                System.out.println(new DateTime(remoteTimestamp*1000) + "  " + new DateTime(System.currentTimeMillis() / 1000 * millis*1000));
+                               // System.out.println(new DateTime(remoteTimestamp*1000) + "  " + new DateTime(System.currentTimeMillis() / 1000 * millis*1000));
 
                                 event.put("timestamp", System.currentTimeMillis() / 1000 * millis);
                                 if (event.containsKey("first_switched"))
