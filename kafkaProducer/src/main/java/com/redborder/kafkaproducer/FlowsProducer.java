@@ -63,6 +63,7 @@ public class FlowsProducer {
         options.addOption("e", "enrichment", true, "Active enrichment.");
         options.addOption("i", true, "Input File.");
         options.addOption("l", false, "Input File Loop.");
+        options.addOption("r", true, "Repeat X times.");
         options.addOption("h", "help", false, "Print help.");
 
 
@@ -139,6 +140,20 @@ public class FlowsProducer {
                 configProducer(cmdLine.getOptionValue("zk"), true);
             }
 
+            long millis = 1;
+
+            if(cmdLine.getOptionValue("topics").contains("rb_loc")){
+                millis=1000;
+            }else if(cmdLine.getOptionValue("topics").contains("rb_flow")){
+                millis=1;
+            }
+
+            Integer repeat = 1;
+            if(cmdLine.hasOption("r")){
+                repeat = Integer.valueOf(cmdLine.getOptionValue("r"));
+
+            }
+
             while (loop) {
                 try {
                     BufferedReader br = new BufferedReader(new FileReader(cmdLine.getOptionValue("i")));
@@ -149,26 +164,32 @@ public class FlowsProducer {
                             Map<String, Object> event = mapper.readValue(sCurrentLine, Map.class);
                             if (delta == 0) {
                                 Long remoteTimestamp = Long.valueOf(String.valueOf(event.get("timestamp")));
-                                Long localTimestamp = System.currentTimeMillis() / 1000;
+                                Long localTimestamp = System.currentTimeMillis() / 1000 * millis;
                                 delta = localTimestamp - remoteTimestamp;
-                                //System.out.println("DELTA: " + localTimestamp + " - " + remoteTimestamp +" = " + delta );
+                                System.out.println(new DateTime(remoteTimestamp*1000) + "  " + new DateTime(localTimestamp*1000));
                                 event.put("timestamp", localTimestamp);
-                                event.put("first_switched", Long.valueOf(String.valueOf(event.get("first_switched"))) + delta);
+                                if (event.containsKey("first_switched"))
+                                    event.put("first_switched", Long.valueOf(String.valueOf(event.get("first_switched"))) + delta);
                             } else {
                                 Long remoteTimestamp = Long.valueOf(String.valueOf(event.get("timestamp")));
-                                System.out.print(remoteTimestamp);
                                 Long toSleep = 0L;
-                                if (remoteTimestamp + delta > System.currentTimeMillis() / 1000) {
-                                    toSleep = (remoteTimestamp + delta - System.currentTimeMillis() / 1000) * 1000;
-                                    System.out.print("        -> SLEEP: " + ((remoteTimestamp + delta - System.currentTimeMillis() / 1000)) + " sec");
+                                if (remoteTimestamp + delta > System.currentTimeMillis() / 1000 * millis) {
+                                    toSleep = (remoteTimestamp + delta - System.currentTimeMillis() / 1000 * millis) * 1000;
                                     Thread.sleep(toSleep);
                                 }
-                                System.out.println();
-                                event.put("timestamp", System.currentTimeMillis() / 1000);
-                                event.put("first_switched", Long.valueOf(String.valueOf(event.get("first_switched"))) + delta + toSleep);
+
+                                System.out.println(new DateTime(remoteTimestamp*1000) + "  " + new DateTime(System.currentTimeMillis() / 1000 * millis*1000));
+
+                                event.put("timestamp", System.currentTimeMillis() / 1000 * millis);
+                                if (event.containsKey("first_switched"))
+                                    event.put("first_switched", Long.valueOf(String.valueOf(event.get("first_switched"))) + delta + toSleep);
                             }
                             String json = mapper.writeValueAsString(event);
-                            producer.send(new KeyedMessage<String, String>(cmdLine.getOptionValue("topics"), json));
+                            Integer times=0;
+                            while (times<repeat) {
+                                producer.send(new KeyedMessage<String, String>(cmdLine.getOptionValue("topics"), json));
+                                times++;
+                            }
                         } catch (FileNotFoundException e) {
                             e.printStackTrace();
                         } catch (IOException e) {
