@@ -177,7 +177,7 @@ public class FlowsProducer {
                                 Long toSleep = 0L;
                                 if (remoteTimestamp + delta > System.currentTimeMillis() / 1000 * millis) {
                                     toSleep = (remoteTimestamp + delta - System.currentTimeMillis() / 1000 * millis) * 1000;
-                                    System.out.printf("%-10s  %-17s  %-10s", DateTime.now().toString()," Produced: "+produces, " Sleep: "+ toSleep/1000 +" secs");
+                                    System.out.printf("%-10s  %-17s  %-10s \n", DateTime.now().toString()," Produced: "+produces, " Sleep: "+ toSleep/1000 +" secs");
                                     produces = 0L;
                                     Thread.sleep(toSleep);
                                 }else{
