@@ -142,14 +142,14 @@ public class FlowsProducer {
 
             long millis = 1;
 
-            if(cmdLine.getOptionValue("topics").contains("rb_loc")){
-                millis=1000;
-            }else if(cmdLine.getOptionValue("topics").contains("rb_flow")){
-                millis=1;
+            if (cmdLine.getOptionValue("topics").contains("rb_loc")) {
+                millis = 1000;
+            } else if (cmdLine.getOptionValue("topics").contains("rb_flow")) {
+                millis = 1;
             }
 
             Integer repeat = 1;
-            if(cmdLine.hasOption("r")){
+            if (cmdLine.hasOption("r")) {
                 repeat = Integer.valueOf(cmdLine.getOptionValue("r"));
 
             }
@@ -165,37 +165,73 @@ public class FlowsProducer {
                         try {
                             Map<String, Object> event = mapper.readValue(sCurrentLine, Map.class);
                             if (delta == 0) {
-                                Long remoteTimestamp = Long.valueOf(String.valueOf(event.get("timestamp")));
+                                Long remoteTimestamp;
+
+                                if (cmdLine.getOptionValue("topics").contains("rb_loc")) {
+                                    List<Map<String, Object>> list = (ArrayList) event.get("notifications");
+                                    remoteTimestamp = Long.valueOf(String.valueOf(list.get(0).get("timestamp")));
+                                } else {
+                                    remoteTimestamp = Long.valueOf(String.valueOf(event.get("timestamp")));
+                                }
+
                                 Long localTimestamp = System.currentTimeMillis() / 1000 * millis;
                                 delta = localTimestamp - remoteTimestamp;
-                                //System.out.println(new DateTime(remoteTimestamp*1000) + "  " + new DateTime(localTimestamp*1000));
-                                event.put("timestamp", localTimestamp);
+
+                                if (cmdLine.getOptionValue("topics").contains("rb_loc")) {
+                                    List<Map<String, Object>> list = (ArrayList) event.get("notifications");
+                                    Map<String, Object> content = list.remove(0);
+                                    content.put("timestamp", localTimestamp);
+                                    list.add(content);
+                                    event.put("notifications", list);
+
+                                } else if (cmdLine.getOptionValue("topics").contains("rb_flow")) {
+                                    event.put("timestamp", localTimestamp);
+                                }
                                 if (event.containsKey("first_switched"))
                                     event.put("first_switched", Long.valueOf(String.valueOf(event.get("first_switched"))) + delta);
                             } else {
-                                Long remoteTimestamp = Long.valueOf(String.valueOf(event.get("timestamp")));
+                                Long remoteTimestamp;
+
+                                if (cmdLine.getOptionValue("topics").contains("rb_loc")) {
+                                    List<Map<String, Object>> list = (ArrayList) event.get("notifications");
+                                    remoteTimestamp = Long.valueOf(String.valueOf(list.get(0).get("timestamp")));
+                                } else {
+                                    remoteTimestamp = Long.valueOf(String.valueOf(event.get("timestamp")));
+                                }
+
                                 Long toSleep = 0L;
+
                                 if (remoteTimestamp + delta > System.currentTimeMillis() / 1000 * millis) {
                                     toSleep = (remoteTimestamp + delta - System.currentTimeMillis() / 1000 * millis) * 1000;
-                                    System.out.printf("%-10s  %-17s  %-10s \n", DateTime.now().toString()," Produced: "+produces, " Sleep: "+ toSleep/1000 +" secs");
+                                    System.out.printf("%-10s  %-17s  %-10s \n", DateTime.now().toString(), " Produced: " + produces, " Sleep: " + toSleep / 1000 + " secs");
                                     produces = 0L;
                                     Thread.sleep(toSleep);
-                                }else{
+                                } else {
                                     produces++;
                                 }
 
-                               // System.out.println(new DateTime(remoteTimestamp*1000) + "  " + new DateTime(System.currentTimeMillis() / 1000 * millis*1000));
+                                if (cmdLine.getOptionValue("topics").contains("rb_loc")) {
+                                    List<Map<String, Object>> list = (ArrayList) event.get("notifications");
+                                    Map<String, Object> content = list.remove(0);
+                                    content.put("timestamp", System.currentTimeMillis() / 1000 * millis);
+                                    list.add(content);
+                                    event.put("notifications", list);
 
-                                event.put("timestamp", System.currentTimeMillis() / 1000 * millis);
+                                } else if (cmdLine.getOptionValue("topics").contains("rb_flow")) {
+                                    event.put("timestamp", System.currentTimeMillis() / 1000 * millis);
+                                }
+
                                 if (event.containsKey("first_switched"))
                                     event.put("first_switched", Long.valueOf(String.valueOf(event.get("first_switched"))) + delta + toSleep);
                             }
                             String json = mapper.writeValueAsString(event);
-                            Integer times=0;
-                            while (times<repeat) {
+                            Integer times = 0;
+
+                            while (times < repeat) {
                                 producer.send(new KeyedMessage<String, String>(cmdLine.getOptionValue("topics"), json));
                                 times++;
                             }
+
                         } catch (FileNotFoundException e) {
                             e.printStackTrace();
                         } catch (IOException e) {
