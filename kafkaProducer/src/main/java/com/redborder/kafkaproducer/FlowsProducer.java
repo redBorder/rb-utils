@@ -205,7 +205,12 @@ public class FlowsProducer {
 
                                 if (remoteTimestamp + delta > System.currentTimeMillis() / 1000 * millis) {
                                     produces++;
-                                    toSleep = (remoteTimestamp + delta - System.currentTimeMillis() / 1000 * millis) * 1000;
+                                    if(millis==1000) {
+                                        toSleep = (remoteTimestamp + delta - System.currentTimeMillis() / 1000 * millis);
+                                    }
+                                    else{
+                                        toSleep = (remoteTimestamp + delta - System.currentTimeMillis() / 1000 * millis) * 1000;
+                                    }
                                     System.out.printf("%-10s  %-17s  %-10s \n", DateTime.now().toString(), " Produced: " + produces, " Sleep: " + toSleep / 1000 + " secs");
                                     produces = 0L;
                                     Thread.sleep(toSleep);
@@ -227,7 +232,7 @@ public class FlowsProducer {
                                 }
 
                                 if (event.containsKey("first_switched"))
-                                    event.put("first_switched", Long.valueOf(String.valueOf(event.get("first_switched"))) + delta + toSleep);
+                                    event.put("first_switched", Long.valueOf(String.valueOf(event.get("first_switched"))) + delta);
                             }
                             String json = mapper.writeValueAsString(event);
                             Integer times = 0;
