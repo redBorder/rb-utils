@@ -286,6 +286,8 @@ public class ProducerThread extends Thread {
                 "Zone Y"};
         int zonaInt = randomX.nextInt(zonas.length);
 
+        String[] apps = {"APP X", "APP C", "APP A", "APP B",
+                "APP Y"};
 
         double lat = 37.40;
         double lon = 26.97;
@@ -310,7 +312,7 @@ public class ProducerThread extends Thread {
                     "\"client_rssi_num\":" + (-randomX.nextInt(80)) + ",\"engine_id_name\":\"IANA-L4\"," +
                     "\"src\":\"" + getIP() + "\",\"application_id\":\"" + randomX.nextInt(10) + ":" + randomX.nextInt(100) + "\"," +
                     "\"sensor_ip\":\"" + getIP() + "\"," +
-                    "\"application_id_name\":\"" + zonas[zonaInt] + "\",\"dst_net\":\"0.0.0.0/0\"," +
+                    "\"application_id_name\":\"" + apps[zonaInt] + "\",\"dst_net\":\"0.0.0.0/0\"," +
                     "\"l4_proto\":" + randomX.nextInt(10) + ",\"ip_protocol_version\":4,\"dst_net_name\":\"0.0.0.0/0\"," +
                     "\"sensor_name\":\"ISG\",\"src_country_code\":\"US\"," +
                     "\"client_floor\":\"" + zonas[zonaInt] + " floor" + "\",\"engine_id\":" + randomX.nextInt(20) +
@@ -327,7 +329,7 @@ public class ProducerThread extends Thread {
                     "\"engine_id_name\":\"IANA-L4\"," +
                     "\"src\":\"" + getIP() + "\",\"application_id\":\"" + randomX.nextInt(10) + ":" + randomX.nextInt(100) + "\"," +
                     "\"sensor_ip\":\"" + getIP() + "\"," +
-                    "\"application_id_name\":\"" + zonas[zonaInt] + "\",\"dst_net\":\"0.0.0.0/0\"," +
+                    "\"application_id_name\":\"" + apps[zonaInt] + "\",\"dst_net\":\"0.0.0.0/0\"," +
                     "\"l4_proto\":" + randomX.nextInt(10) + ",\"ip_protocol_version\":4,\"dst_net_name\":\"0.0.0.0/0\"," +
                     "\"sensor_name\":\"TESTING\"," +
                     "\"engine_id\":" + randomX.nextInt(20) +
