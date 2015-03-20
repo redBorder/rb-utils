@@ -311,7 +311,7 @@ public class ProducerThread extends Thread {
                     "\"flow_end_reason\":\"idle timeout\",\"src_net\":\"0.0.0.0/0\"," +
                     "\"client_rssi_num\":" + (-randomX.nextInt(80)) + ",\"engine_id_name\":\"IANA-L4\"," +
                     "\"src\":\"" + getIP() + "\",\"application_id\":\"" + randomX.nextInt(10) + ":" + randomX.nextInt(100) + "\"," +
-                    "\"sensor_ip\":\"" + getIP() + "\"," +
+                    "\"sensor_ip\":\"90.1.44.3\"," +
                     "\"application_id_name\":\"" + apps[zonaInt] + "\",\"dst_net\":\"0.0.0.0/0\"," +
                     "\"l4_proto\":" + randomX.nextInt(10) + ",\"ip_protocol_version\":4,\"dst_net_name\":\"0.0.0.0/0\"," +
                     "\"sensor_name\":\"ISG\",\"src_country_code\":\"US\"," +
@@ -328,7 +328,7 @@ public class ProducerThread extends Thread {
                     "\"flow_end_reason\":\"idle timeout\",\"src_net\":\"0.0.0.0/0\"," +
                     "\"engine_id_name\":\"IANA-L4\"," +
                     "\"src\":\"" + getIP() + "\",\"application_id\":\"" + randomX.nextInt(10) + ":" + randomX.nextInt(100) + "\"," +
-                    "\"sensor_ip\":\"" + getIP() + "\"," +
+                    "\"sensor_ip\":\"90.1.44.3\"," +
                     "\"application_id_name\":\"" + apps[zonaInt] + "\",\"dst_net\":\"0.0.0.0/0\"," +
                     "\"l4_proto\":" + randomX.nextInt(10) + ",\"ip_protocol_version\":4,\"dst_net_name\":\"0.0.0.0/0\"," +
                     "\"sensor_name\":\"TESTING\"," +
@@ -351,7 +351,7 @@ public class ProducerThread extends Thread {
         int msgInt = new Random().nextInt(msg.length);
 
 
-        String event = "{\"timestamp\":" + ((System.currentTimeMillis() / 1000)) + ", \"sensor_id\":7, \"type\":\"ips\", \"sensor_name\":\"rbips\", \"sensor_ip\":\"65.50.203.157\"," +
+        String event = "{\"timestamp\":" + ((System.currentTimeMillis() / 1000)) + ", \"sensor_id\":7, \"type\":\"ips\", \"sensor_name\":\"rbips\", \"sensor_ip\":\"90.1.44.3\"," +
                 " \"domain_name\":\"IPS\", \"group_name\":\"default\", \"group_id\":8, \"sig_generator\":1, \"sig_id\":25521," +
                 " \"rev\":3, \"priority\":\"high\", \"classification\":\"" + classification[classificationInt] + "\"," +
                 " \"action\":\"alert\", \"msg\":\"" + msg[msgInt] + "\"," +
