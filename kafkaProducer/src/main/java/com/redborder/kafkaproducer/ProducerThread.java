@@ -191,6 +191,7 @@ public class ProducerThread extends Thread {
         props.put("producer.type", "async");
         props.put("queue.buffering.max.messages", "10000");
         props.put("queue.buffering.max.ms", "500");
+        props.put("partitioner.class", "com.redborder.kafkaproducer.SimplePartitioner");
 
         ProducerConfig config = new ProducerConfig(props);
         producer = new Producer<String, String>(config);
@@ -255,12 +256,13 @@ public class ProducerThread extends Thread {
         double randomOk = random / 100;
         double random1k = random2 / 100;
 
+        String client_mac = getMac();
 
         DateTime date = new DateTime();
 
         String loc = "{\"StreamingNotification\":{\"subscriptionName\":\"ENEO_STREAM_JSON_TCP\",\"entity\":\"WIRELESS_CLIENTS\","
-                + "\"deviceId\":\"" + getMac() + "\",\"mseUdi\":\"AIR-MSE-3355-K9:V03:KQ4V9TX\",\"floorRefId\":0,"
-                + "\"location\":{\"macAddress\":\"" + getMac() + "\",\"mapInfo\""
+                + "\"deviceId\":\"" + client_mac + "\",\"mseUdi\":\"AIR-MSE-3355-K9:V03:KQ4V9TX\",\"floorRefId\":0,"
+                + "\"location\":{\"macAddress\":\"" + client_mac + "\",\"mapInfo\""
                 + ":{\"mapHierarchyString\":\"" + zonas[zonaInt] + ">" + zonas[zonaInt] + ">" + zonas[zonaInt] + "\","
                 + "\"floorRefId\":4698041219291283737,\"floorDimension\":"
                 + "{\"length\":160.11,\"width\":414.03,\"height\":10.0,\"offsetX\":0.0,"
@@ -274,7 +276,7 @@ public class ProducerThread extends Thread {
                 + "\"dot11Status\":\"" + status[statusInt] + "\",\"guestUser\":false},"
                 + "\"timestamp\":\"" + date.toDateTimeISO().toString() + "\"}}";
 
-        return new KeyedMessage<String, String>("rb_loc", loc);
+        return new KeyedMessage<String, String>("rb_loc", client_mac, loc);
     }
 
     public KeyedMessage getFlow() {
@@ -296,6 +298,7 @@ public class ProducerThread extends Thread {
         double random2 = randomX.nextInt(100);
         double randomOk = random / 100;
         double random1k = random2 / 100;
+        String client_mac = getMac();
         String flow = null;
 
 
@@ -307,7 +310,7 @@ public class ProducerThread extends Thread {
                     "\"biflow_direction\":\"initiator\",\"pkts\":" + randomX.nextInt(500) + ",\"dst\":\"" + getIP() + "\"," +
                     "\"type\":\"NetFlowv10\",\"client_campus\":\"" + zonas[zonaInt] + " campus" + "\"," +
                     "\"client_building\":\"" + zonas[zonaInt] + " building" + "\",\"timestamp\":"  + ((System.currentTimeMillis() / 1000)) + "," +
-                    "\"client_mac\":\"" + getMac() + "\",\"wireless_id\":\"" + getSSID() + "\"," +
+                    "\"client_mac\":\"" + client_mac + "\",\"wireless_id\":\"" + getSSID() + "\"," +
                     "\"flow_end_reason\":\"idle timeout\",\"src_net\":\"0.0.0.0/0\"," +
                     "\"client_rssi_num\":" + (-randomX.nextInt(80)) + ",\"engine_id_name\":\"IANA-L4\"," +
                     "\"src\":\"" + getIP() + "\",\"application_id\":\"" + randomX.nextInt(10) + ":" + randomX.nextInt(100) + "\"," +
@@ -324,7 +327,7 @@ public class ProducerThread extends Thread {
                     "\"biflow_direction\":\"initiator\",\"pkts\":" + randomX.nextInt(500) + ",\"dst\":\"" + getIP() + "\"," +
                     "\"type\":\"NetFlowv10\"," +
                     "\"timestamp\":" + (System.currentTimeMillis() / 1000) + "," +
-                    "\"client_mac\":\"" + getMac() + "\"," +
+                    "\"client_mac\":\"" + client_mac + "\"," +
                     "\"flow_end_reason\":\"idle timeout\",\"src_net\":\"0.0.0.0/0\"," +
                     "\"engine_id_name\":\"IANA-L4\"," +
                     "\"src\":\"" + getIP() + "\",\"application_id\":\"" + randomX.nextInt(10) + ":" + randomX.nextInt(100) + "\"," +
@@ -336,7 +339,7 @@ public class ProducerThread extends Thread {
                     "}";
 
 
-        return new KeyedMessage<String, String>("rb_flow", flow);
+        return new KeyedMessage<String, String>("rb_flow", client_mac, flow);
     }
 
     public static KeyedMessage getEvent() {
@@ -349,7 +352,7 @@ public class ProducerThread extends Thread {
 
         int classificationInt = new Random().nextInt(classification.length);
         int msgInt = new Random().nextInt(msg.length);
-
+        String client_mac = getMac();
 
         String event = "{\"timestamp\":" + ((System.currentTimeMillis() / 1000) +(10 *60)) + ", \"sensor_id\":7, \"type\":\"ips\", \"sensor_name\":\"rbips\", \"sensor_ip\":\"65.50.203.157\"," +
                 " \"domain_name\":\"IPS\", \"group_name\":\"default\", \"group_id\":8, \"sig_generator\":1, \"sig_id\":25521," +
@@ -361,7 +364,7 @@ public class ProducerThread extends Thread {
                 "\"src\":\"" + getIP() + "\", \"src_net\":\"0.0.0.0/0\", \"src_net_name\":\"0.0.0.0/0\", \"src_as\":8121," +
                 " \"src_as_name\":\"TCH Network Services\", \"dst\":\"" + getIP() + "\", \"dst_net\":\"0.0.0.0/0\"," +
                 " \"dst_net_name\":\"0.0.0.0/0\", \"dst_as\":2914, \"dst_as_name\":\"NTT America, Inc.\"," +
-                " \"src_port\":92, \"dst_port\":80, \"ethsrc\":\"" + getMac() + "\", " +
+                " \"src_port\":92, \"dst_port\":80, \"ethsrc\":\"" + client_mac + "\", " +
                 "\"ethdst\":\"" + getMac() + "\", \"ethlength\":264," +
                 " \"ethlength_range\":\"(256-512]\", \"tcpflags\":\"***AP***\"," +
                 " \"tcpseq\":432143985, \"tcpack\":3505747298, \"tcplen\":32, " +
@@ -370,7 +373,7 @@ public class ProducerThread extends Thread {
                 " \"src_country\":\"United States\", \"dst_country\":\"United States\"," +
                 " \"src_country_code\":\"US\", \"dst_country_code\":\"US\", \"ethsrc_vendor\":\"Cisco\", \"ethdst_vendor\":\"Cisco\", \"first_switched\": " + (System.currentTimeMillis() / 1000)+"}";
 
-        return new KeyedMessage<String, String>("rb_event", event);
+        return new KeyedMessage<String, String>("rb_event", client_mac, event);
     }
 
     public String getUser(){
