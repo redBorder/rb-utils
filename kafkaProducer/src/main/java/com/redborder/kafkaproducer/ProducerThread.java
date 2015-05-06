@@ -37,6 +37,8 @@ public class ProducerThread extends Thread {
 
     String topics;
     int index = 0;
+    Map<String, String> tiers = new HashMap<String, String>();
+
 
 
     public ProducerThread(String zookeeper, String topic, String brokerList, Integer events, Integer id, boolean enrich) {
@@ -46,6 +48,9 @@ public class ProducerThread extends Thread {
         this.events = events;
         this.id = id;
         this.enrich = enrich;
+        tiers.put("deployment_a", "gold");
+        tiers.put("deployment_b", "silver");
+        tiers.put("deployment_c", "unknown");
     }
 
     public void terminate() {
@@ -237,6 +242,14 @@ public class ProducerThread extends Thread {
         return ip[ips];
     }
 
+    public static String deployment() {
+        String[] ip = {"deployment_a", "deployment_b", "deployment_c"};
+
+        int ips = new Random().nextInt(ip.length);
+
+        return ip[ips];
+    }
+
     public KeyedMessage getLocation() {
 
 
@@ -300,16 +313,18 @@ public class ProducerThread extends Thread {
         double random1k = random2 / 100;
         String client_mac = getMac();
         String flow = null;
+        String deployment = deployment();
 
 
-        if (enrich)
+        if (enrich) {
+
             flow = "{\"client_latlong\":\"" + (lat + randomOk) + "," + (lon - random1k) + "\"," +
                     "\"dst_country_code\":\"US\",\"dot11_status\":\"" + status[statusInt] + "\"," +
                     "\"bytes\":" + new Random().nextInt(3000) + ",\"src_net_name\":\"0.0.0.0/0\",\"flow_sampler_id\":0," +
                     "\"direction\":\"ingress\",\"wireless_station\":\"" + getAPmac() + "\"," +
                     "\"biflow_direction\":\"initiator\",\"pkts\":" + randomX.nextInt(500) + ",\"dst\":\"" + getIP() + "\"," +
                     "\"type\":\"NetFlowv10\",\"client_campus\":\"" + zonas[zonaInt] + " campus" + "\"," +
-                    "\"client_building\":\"" + zonas[zonaInt] + " building" + "\",\"timestamp\":"  + ((System.currentTimeMillis() / 1000)) + "," +
+                    "\"client_building\":\"" + zonas[zonaInt] + " building" + "\",\"timestamp\":" + ((System.currentTimeMillis() / 1000)) + "," +
                     "\"client_mac\":\"" + client_mac + "\",\"wireless_id\":\"" + getSSID() + "\"," +
                     "\"flow_end_reason\":\"idle timeout\",\"src_net\":\"0.0.0.0/0\"," +
                     "\"client_rssi_num\":" + (-randomX.nextInt(80)) + ",\"engine_id_name\":\"IANA-L4\"," +
@@ -319,8 +334,9 @@ public class ProducerThread extends Thread {
                     "\"l4_proto\":" + randomX.nextInt(10) + ",\"ip_protocol_version\":4,\"dst_net_name\":\"0.0.0.0/0\"," +
                     "\"sensor_name\":\"ISG\",\"src_country_code\":\"US\"," +
                     "\"client_floor\":\"" + zonas[zonaInt] + " floor" + "\",\"engine_id\":" + randomX.nextInt(20) +
-                    ",\"client_mac_vendor\":\"SAMSUNG ELECTRO-MECHANICS\", \"first_switched\": " + ((System.currentTimeMillis() / 1000)-(2 *60))+"}";
-        else
+                    ",\"client_mac_vendor\":\"SAMSUNG ELECTRO-MECHANICS\", \"first_switched\": " + ((System.currentTimeMillis() / 1000) - (2 * 60)) + ", \"deployment_id\": \"" + deployment + "\", \"tier\":\"" + tiers.get(deployment) +"\"}";
+        }else {
+
             flow = "{" +
                     "\"bytes\":" + new Random().nextInt(3000) + ",\"src_net_name\":\"0.0.0.0/0\",\"flow_sampler_id\":0," +
                     "\"direction\":\"ingress\"," +
@@ -336,8 +352,8 @@ public class ProducerThread extends Thread {
                     "\"l4_proto\":" + randomX.nextInt(10) + ",\"ip_protocol_version\":4,\"dst_net_name\":\"0.0.0.0/0\"," +
                     "\"sensor_name\":\"TESTING\"," +
                     "\"engine_id\":" + randomX.nextInt(20) +
-                    "}";
-
+                    ", \"first_switched\": " + ((System.currentTimeMillis() / 1000) - (2 * 60)) + ", \"deployment_id\": \"" + deployment + "\", \"tier\":\"" + tiers.get(deployment) +"\"}";
+        }
 
         return new KeyedMessage<String, String>("rb_flow", client_mac, flow);
     }
