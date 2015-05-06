@@ -337,7 +337,7 @@ public class ProducerThread extends Thread {
                     "\"sensor_ip\":\"90.1.44.3\"," +
                     "\"application_id_name\":\"" + apps[zonaInt] + "\",\"dst_net\":\"0.0.0.0/0\"," +
                     "\"l4_proto\":" + randomX.nextInt(10) + ",\"ip_protocol_version\":4,\"dst_net_name\":\"0.0.0.0/0\"," +
-                    "\"sensor_name\":\"sensor_ "+ deployment + "_" + tiers.get(deployment)  +"\" ,\"src_country_code\":\"US\"," +
+                    "\"sensor_name\":\"sensor_" + deployment + "_" + tiers.get(deployment)  +"\" ,\"src_country_code\":\"US\"," +
                     "\"client_floor\":\"" + zonas[zonaInt] + " floor" + "\",\"engine_id\":" + randomX.nextInt(20) +
                     ",\"client_mac_vendor\":\"SAMSUNG ELECTRO-MECHANICS\", \"first_switched\": " + ((System.currentTimeMillis() / 1000) - (2 * 60)) + ", \"deployment_id\":" + deployment + ", \"tier\":\"" + tiers.get(deployment) +"\"}";
         }else {
