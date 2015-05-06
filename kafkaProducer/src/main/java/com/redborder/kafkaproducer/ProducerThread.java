@@ -37,7 +37,7 @@ public class ProducerThread extends Thread {
 
     String topics;
     int index = 0;
-    Map<String, String> tiers = new HashMap<String, String>();
+    Map<Integer, String> tiers = new HashMap<Integer, String>();
 
 
 
@@ -48,9 +48,9 @@ public class ProducerThread extends Thread {
         this.events = events;
         this.id = id;
         this.enrich = enrich;
-        tiers.put("deployment_a", "gold");
-        tiers.put("deployment_b", "silver");
-        tiers.put("deployment_c", "unknown");
+        tiers.put(551213, "gold");
+        tiers.put(72342, "silver");
+        tiers.put(141241, "unknown");
     }
 
     public void terminate() {
@@ -203,17 +203,22 @@ public class ProducerThread extends Thread {
 
     }
 
+    public static Random randomHex = new Random();
+
+    public static Integer getHex(){
+        int idx = randomHex.nextInt(0xF);
+        return idx;
+    }
 
     public static String getMac() {
-        String[] macs = {"54:26:96:d7:62:91", "b4:52:7e:8d:24:0f",
-                "88:32:9b:4e:71:36", "b4:52:7e:88:ca:53",
-                "b4:52:7e:8d:23:46", "b4:52:7e:7d:5d:8c",
-                "98:d6:f7:67:36:cf", "88:11:77:aa:bb:22",
-                "99:aa:bb:cc:11:00", "00:a3:b5:77:1a:3c"};
+        String mac = "00" + ":" +
+                     "00" + ":" +
+                     "00" + ":" +
+                     "00" + ":" +
+                     "0" + String.format("%x", getHex()) + ":" +
+                     String.format("%x", getHex()) + String.format("%x", getHex());
 
-        int idx = new Random().nextInt(macs.length);
-        return macs[idx];
-
+        return mac;
     }
 
     public static String getAPmac() {
@@ -242,8 +247,8 @@ public class ProducerThread extends Thread {
         return ip[ips];
     }
 
-    public static String deployment() {
-        String[] ip = {"deployment_a", "deployment_b", "deployment_c"};
+    public static Integer deployment() {
+        Integer[] ip = {551213, 72342, 141241};
 
         int ips = new Random().nextInt(ip.length);
 
@@ -313,7 +318,7 @@ public class ProducerThread extends Thread {
         double random1k = random2 / 100;
         String client_mac = getMac();
         String flow = null;
-        String deployment = deployment();
+        Integer deployment = deployment();
 
 
         if (enrich) {
@@ -332,9 +337,9 @@ public class ProducerThread extends Thread {
                     "\"sensor_ip\":\"90.1.44.3\"," +
                     "\"application_id_name\":\"" + apps[zonaInt] + "\",\"dst_net\":\"0.0.0.0/0\"," +
                     "\"l4_proto\":" + randomX.nextInt(10) + ",\"ip_protocol_version\":4,\"dst_net_name\":\"0.0.0.0/0\"," +
-                    "\"sensor_name\":\"ISG\",\"src_country_code\":\"US\"," +
+                    "\"sensor_name\":\"sensor_ "+ deployment + "_" + tiers.get(deployment)  +"\" ,\"src_country_code\":\"US\"," +
                     "\"client_floor\":\"" + zonas[zonaInt] + " floor" + "\",\"engine_id\":" + randomX.nextInt(20) +
-                    ",\"client_mac_vendor\":\"SAMSUNG ELECTRO-MECHANICS\", \"first_switched\": " + ((System.currentTimeMillis() / 1000) - (2 * 60)) + ", \"deployment_id\": \"" + deployment + "\", \"tier\":\"" + tiers.get(deployment) +"\"}";
+                    ",\"client_mac_vendor\":\"SAMSUNG ELECTRO-MECHANICS\", \"first_switched\": " + ((System.currentTimeMillis() / 1000) - (2 * 60)) + ", \"deployment_id\":" + deployment + ", \"tier\":\"" + tiers.get(deployment) +"\"}";
         }else {
 
             flow = "{" +
@@ -350,9 +355,9 @@ public class ProducerThread extends Thread {
                     "\"sensor_ip\":\"90.1.44.3\"," +
                     "\"application_id_name\":\"" + apps[zonaInt] + "\",\"dst_net\":\"0.0.0.0/0\"," +
                     "\"l4_proto\":" + randomX.nextInt(10) + ",\"ip_protocol_version\":4,\"dst_net_name\":\"0.0.0.0/0\"," +
-                    "\"sensor_name\":\"TESTING\"," +
+                    "\"sensor_name\":\"sensor_" + deployment + "_" + tiers.get(deployment) +"\" ," +
                     "\"engine_id\":" + randomX.nextInt(20) +
-                    ", \"first_switched\": " + ((System.currentTimeMillis() / 1000) - (2 * 60)) + ", \"deployment_id\": \"" + deployment + "\", \"tier\":\"" + tiers.get(deployment) +"\"}";
+                    ", \"first_switched\": " + ((System.currentTimeMillis() / 1000) - (2 * 60)) + ", \"deployment_id\":" + deployment + ", \"tier\":\"" + tiers.get(deployment) +"\"}";
         }
 
         return new KeyedMessage<String, String>("rb_flow", client_mac, flow);
