@@ -38,6 +38,7 @@ public class ProducerThread extends Thread {
     String topics;
     int index = 0;
     Map<Integer, String> tiers = new HashMap<Integer, String>();
+    Map<Integer, Integer> sensorId = new HashMap<Integer, Integer>();
 
 
 
@@ -51,6 +52,9 @@ public class ProducerThread extends Thread {
         tiers.put(551213, "gold");
         tiers.put(72342, "silver");
         tiers.put(141241, "unknown");
+        sensorId.put(551213, 2);
+        sensorId.put(72342, 5);
+        sensorId.put(141241, 6);
     }
 
     public void terminate() {
@@ -297,6 +301,10 @@ public class ProducerThread extends Thread {
         return new KeyedMessage<String, String>("rb_loc", client_mac, loc);
     }
 
+    public Integer getSensorId(Integer deployment_id){
+        return sensorId.get(deployment_id);
+    }
+
     public KeyedMessage getFlow() {
 
         String[] status = {"ASSOCIATED", "PROBING", "UNKNOWN"};
@@ -339,7 +347,8 @@ public class ProducerThread extends Thread {
                     "\"l4_proto\":" + randomX.nextInt(10) + ",\"ip_protocol_version\":4,\"dst_net_name\":\"0.0.0.0/0\"," +
                     "\"sensor_name\":\"sensor_" + deployment + "_" + tiers.get(deployment)  +"\" ,\"src_country_code\":\"US\"," +
                     "\"client_floor\":\"" + zonas[zonaInt] + " floor" + "\",\"engine_id\":" + randomX.nextInt(20) +
-                    ",\"client_mac_vendor\":\"SAMSUNG ELECTRO-MECHANICS\", \"first_switched\": " + ((System.currentTimeMillis() / 1000) - (2 * 60)) + ", \"deployment_id\":" + deployment + ", \"tier\":\"" + tiers.get(deployment) +"\"}";
+                    ",\"client_mac_vendor\":\"SAMSUNG ELECTRO-MECHANICS\", \"first_switched\": " + ((System.currentTimeMillis() / 1000) - (2 * 60)) + ", \"deployment_id\":" + deployment
+                    + ", \"tier\":\"" + tiers.get(deployment) +"\", \"sensor_id\":" + getSensorId(deployment) +"}";
         }else {
 
             flow = "{" +
@@ -357,7 +366,8 @@ public class ProducerThread extends Thread {
                     "\"l4_proto\":" + randomX.nextInt(10) + ",\"ip_protocol_version\":4,\"dst_net_name\":\"0.0.0.0/0\"," +
                     "\"sensor_name\":\"sensor_" + deployment + "_" + tiers.get(deployment) +"\" ," +
                     "\"engine_id\":" + randomX.nextInt(20) +
-                    ", \"first_switched\": " + ((System.currentTimeMillis() / 1000) - (2 * 60)) + ", \"deployment_id\":" + deployment + ", \"tier\":\"" + tiers.get(deployment) +"\"}";
+                    ", \"first_switched\": " + ((System.currentTimeMillis() / 1000) - (2 * 60)) + ", \"deployment_id\":" + deployment + ", \"tier\":\"" + tiers.get(deployment) +
+                    "\", \"sensor_id\":" +getSensorId(deployment) +"}";
         }
 
         return new KeyedMessage<String, String>("rb_flow", client_mac, flow);
