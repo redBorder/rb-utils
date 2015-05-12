@@ -40,8 +40,6 @@ public class ProducerThread extends Thread {
     Map<Integer, String> tiers = new HashMap<Integer, String>();
     Map<Integer, Integer> sensorId = new HashMap<Integer, Integer>();
 
-
-
     public ProducerThread(String zookeeper, String topic, String brokerList, Integer events, Integer id, boolean enrich) {
         this.zookeeper = zookeeper;
         this.topics = topic;
@@ -347,8 +345,8 @@ public class ProducerThread extends Thread {
                     "\"l4_proto\":" + randomX.nextInt(10) + ",\"ip_protocol_version\":4,\"dst_net_name\":\"0.0.0.0/0\"," +
                     "\"sensor_name\":\"sensor_" + deployment + "_" + tiers.get(deployment)  +"\" ,\"src_country_code\":\"US\"," +
                     "\"client_floor\":\"" + zonas[zonaInt] + " floor" + "\",\"engine_id\":" + randomX.nextInt(20) +
-                    ",\"client_mac_vendor\":\"SAMSUNG ELECTRO-MECHANICS\", \"first_switched\": " + ((System.currentTimeMillis() / 1000) - (2 * 60)) + ", \"deployment_id\":" + deployment
-                    + ", \"tier\":\"" + tiers.get(deployment) +"\", \"sensor_id\":" + getSensorId(deployment) +"}";
+                    ",\"client_mac_vendor\":\"SAMSUNG ELECTRO-MECHANICS\", \"first_switched\": " + ((System.currentTimeMillis() / 1000) - (2 * 60)) +
+                    ", \"deployment_id\":" + deployment + ", \"tier\":\"" + tiers.get(deployment) +"\", \"sensor_id\":" + getSensorId(deployment) +"}";
         }else {
 
             flow = "{" +
@@ -373,7 +371,7 @@ public class ProducerThread extends Thread {
         return new KeyedMessage<String, String>("rb_flow", client_mac, flow);
     }
 
-    public static KeyedMessage getEvent() {
+    public KeyedMessage getEvent() {
 
         String[] classification = {"Potential Corporate Privacy Violation", "Sensitive Data was Transmitted Across the Network", "Potentially Bad Traffic",
                 "Unknown Traffic"};
@@ -384,6 +382,8 @@ public class ProducerThread extends Thread {
         int classificationInt = new Random().nextInt(classification.length);
         int msgInt = new Random().nextInt(msg.length);
         String client_mac = getMac();
+
+        Integer deployment = deployment();
 
         String event = "{\"timestamp\":" + ((System.currentTimeMillis() / 1000)) + ", \"sensor_id\":7, \"type\":\"ips\", \"sensor_name\":\"rbips\", \"sensor_ip\":\"90.1.44.3\"," +
                 " \"domain_name\":\"IPS\", \"group_name\":\"default\", \"group_id\":8, \"sig_generator\":1, \"sig_id\":25521," +
@@ -397,6 +397,8 @@ public class ProducerThread extends Thread {
                 " \"dst_net_name\":\"0.0.0.0/0\", \"dst_as\":2914, \"dst_as_name\":\"NTT America, Inc.\"," +
                 " \"src_port\":92, \"dst_port\":80, \"ethsrc\":\"" + client_mac + "\", " +
                 "\"ethdst\":\"" + getMac() + "\", \"ethlength\":264," +
+                "\"sensor_name\":\"sensor_" + deployment + "_" + tiers.get(deployment) +"\" ," +
+                "\"deployment_id\": " + deployment + ", \"tier\":\"" + tiers.get(deployment) +"\", \"sensor_id\":" + getSensorId(deployment) + ", " +
                 " \"ethlength_range\":\"(256-512]\", \"tcpflags\":\"***AP***\"," +
                 " \"tcpseq\":432143985, \"tcpack\":3505747298, \"tcplen\":32, " +
                 "\"tcpwindow\":229, \"ttl\":" + new Random().nextInt(120) + ", \"tos\":0, \"id\":31461, " +
@@ -438,7 +440,6 @@ public class ProducerThread extends Thread {
     }
 
     public  KeyedMessage getSocial(){
-
         double lat = 37.40;
         double lon = 26.97;
 
@@ -448,9 +449,6 @@ public class ProducerThread extends Thread {
         double random1k = random2 / 100;
 
         int id = 136447 * randomX.nextInt(100000);
-
-
-
 
         String type = getType();
         String social = "{\"sensor_name\": \"rb_social\"," +
