@@ -250,7 +250,7 @@ public class ProducerThread extends Thread {
     }
 
     public static Integer deployment() {
-        Integer[] ip = {551213, 72342, 141241};
+        Integer[] ip = {1, 2, 3};
 
         int ips = new Random().nextInt(ip.length);
 
