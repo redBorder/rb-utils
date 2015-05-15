@@ -47,12 +47,12 @@ public class ProducerThread extends Thread {
         this.events = events;
         this.id = id;
         this.enrich = enrich;
-        tiers.put(551213, "gold");
-        tiers.put(72342, "silver");
-        tiers.put(141241, "unknown");
-        sensorId.put(551213, 2);
-        sensorId.put(72342, 5);
-        sensorId.put(141241, 6);
+        tiers.put(2, "gold");
+        tiers.put(3, "silver");
+        tiers.put(4, "bronze");
+        sensorId.put(2, 2);
+        sensorId.put(3, 5);
+        sensorId.put(4, 6);
     }
 
     public void terminate() {
@@ -249,12 +249,12 @@ public class ProducerThread extends Thread {
         return ip[ips];
     }
 
-    public static Integer deployment() {
-        Integer[] ip = {1, 2, 3};
+    public static Integer namespace() {
+        Integer[] namespaces = {2, 3, 4};
 
-        int ips = new Random().nextInt(ip.length);
+        int index = new Random().nextInt(namespaces.length);
 
-        return ip[ips];
+        return namespaces[index];
     }
 
     public KeyedMessage getLocation() {
@@ -299,8 +299,8 @@ public class ProducerThread extends Thread {
         return new KeyedMessage<String, String>("rb_loc", client_mac, loc);
     }
 
-    public Integer getSensorId(Integer deployment_id){
-        return sensorId.get(deployment_id);
+    public Integer getSensorId(Integer namespace_id) {
+        return sensorId.get(namespace_id);
     }
 
     public KeyedMessage getFlow() {
@@ -324,8 +324,7 @@ public class ProducerThread extends Thread {
         double random1k = random2 / 100;
         String client_mac = getMac();
         String flow = null;
-        Integer deployment = deployment();
-
+        Integer namespace = namespace();
 
         if (enrich) {
 
@@ -343,10 +342,10 @@ public class ProducerThread extends Thread {
                     "\"sensor_ip\":\"90.1.44.3\"," +
                     "\"application_id_name\":\"" + apps[zonaInt] + "\",\"dst_net\":\"0.0.0.0/0\"," +
                     "\"l4_proto\":" + randomX.nextInt(10) + ",\"ip_protocol_version\":4,\"dst_net_name\":\"0.0.0.0/0\"," +
-                    "\"sensor_name\":\"sensor_" + deployment + "_" + tiers.get(deployment)  +"\" ,\"src_country_code\":\"US\"," +
+                    "\"sensor_name\":\"sensor_" + namespace + "_" + tiers.get(namespace)  +"\" ,\"src_country_code\":\"US\"," +
                     "\"client_floor\":\"" + zonas[zonaInt] + " floor" + "\",\"engine_id\":" + randomX.nextInt(20) +
                     ",\"client_mac_vendor\":\"SAMSUNG ELECTRO-MECHANICS\", \"first_switched\": " + ((System.currentTimeMillis() / 1000) - (2 * 60)) +
-                    ", \"deployment_id\":" + deployment + ", \"tier\":\"" + tiers.get(deployment) +"\", \"sensor_id\":" + getSensorId(deployment) +"}";
+                    ", \"namespace_id\":" + namespace + ", \"tier\":\"" + tiers.get(namespace) +"\", \"sensor_id\":" + getSensorId(namespace) +"}";
         }else {
 
             flow = "{" +
@@ -362,10 +361,10 @@ public class ProducerThread extends Thread {
                     "\"sensor_ip\":\"90.1.44.3\"," +
                     "\"application_id_name\":\"" + apps[zonaInt] + "\",\"dst_net\":\"0.0.0.0/0\"," +
                     "\"l4_proto\":" + randomX.nextInt(10) + ",\"ip_protocol_version\":4,\"dst_net_name\":\"0.0.0.0/0\"," +
-                    "\"sensor_name\":\"sensor_" + deployment + "_" + tiers.get(deployment) +"\" ," +
+                    "\"sensor_name\":\"sensor_" + namespace + "_" + tiers.get(namespace) +"\" ," +
                     "\"engine_id\":" + randomX.nextInt(20) +
-                    ", \"first_switched\": " + ((System.currentTimeMillis() / 1000) - (2 * 60)) + ", \"deployment_id\":" + deployment + ", \"tier\":\"" + tiers.get(deployment) +
-                    "\", \"sensor_id\":" +getSensorId(deployment) +"}";
+                    ", \"first_switched\": " + ((System.currentTimeMillis() / 1000) - (2 * 60)) + ", \"namespace_id\":" + namespace + ", \"tier\":\"" + tiers.get(namespace) +
+                    "\", \"sensor_id\":" +getSensorId(namespace) +"}";
         }
 
         return new KeyedMessage<String, String>("rb_flow", client_mac, flow);
@@ -383,7 +382,7 @@ public class ProducerThread extends Thread {
         int msgInt = new Random().nextInt(msg.length);
         String client_mac = getMac();
 
-        Integer deployment = deployment();
+        Integer namespace = namespace();
 
         String event = "{\"timestamp\":" + ((System.currentTimeMillis() / 1000)) + ", \"sensor_id\":7, \"type\":\"ips\", \"sensor_name\":\"rbips\", \"sensor_ip\":\"90.1.44.3\"," +
                 " \"domain_name\":\"IPS\", \"group_name\":\"default\", \"group_id\":8, \"sig_generator\":1, \"sig_id\":25521," +
@@ -397,8 +396,8 @@ public class ProducerThread extends Thread {
                 " \"dst_net_name\":\"0.0.0.0/0\", \"dst_as\":2914, \"dst_as_name\":\"NTT America, Inc.\"," +
                 " \"src_port\":92, \"dst_port\":80, \"ethsrc\":\"" + client_mac + "\", " +
                 "\"ethdst\":\"" + getMac() + "\", \"ethlength\":264," +
-                "\"sensor_name\":\"sensor_" + deployment + "_" + tiers.get(deployment) +"\" ," +
-                "\"deployment_id\": " + deployment + ", \"tier\":\"" + tiers.get(deployment) +"\", \"sensor_id\":" + getSensorId(deployment) + ", " +
+                "\"sensor_name\":\"sensor_" + namespace + "_" + tiers.get(namespace) +"\" ," +
+                "\"namespace_id\": " + namespace + ", \"tier\":\"" + tiers.get(namespace) +"\", \"sensor_id\":" + getSensorId(namespace) + ", " +
                 " \"ethlength_range\":\"(256-512]\", \"tcpflags\":\"***AP***\"," +
                 " \"tcpseq\":432143985, \"tcpack\":3505747298, \"tcplen\":32, " +
                 "\"tcpwindow\":229, \"ttl\":" + new Random().nextInt(120) + ", \"tos\":0, \"id\":31461, " +
