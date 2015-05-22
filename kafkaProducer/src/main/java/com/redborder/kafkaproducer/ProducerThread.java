@@ -50,9 +50,23 @@ public class ProducerThread extends Thread {
         tiers.put(2, "gold");
         tiers.put(3, "silver");
         tiers.put(4, "bronze");
+        tiers.put(5, "silver");
+        tiers.put(6, "gold");
+        tiers.put(7, "bronze");
+        tiers.put(8, "silver");
+        tiers.put(9, "gold");
+        tiers.put(10, "silver");
+        tiers.put(11, "bronze");
         sensorId.put(2, 2);
         sensorId.put(3, 5);
         sensorId.put(4, 6);
+        sensorId.put(9, 7);
+        sensorId.put(10, 8);
+        sensorId.put(11, 9);
+        sensorId.put(12, 10);
+        sensorId.put(13, 11);
+        sensorId.put(14, 12);
+        sensorId.put(15, 13);
     }
 
     public void terminate() {
@@ -250,7 +264,7 @@ public class ProducerThread extends Thread {
     }
 
     public static Integer namespace() {
-        Integer[] namespaces = {2, 3, 4};
+        Integer[] namespaces = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
 
         int index = new Random().nextInt(namespaces.length);
 
@@ -333,8 +347,8 @@ public class ProducerThread extends Thread {
                     "\"bytes\":" + new Random().nextInt(3000) + ",\"src_net_name\":\"0.0.0.0/0\",\"flow_sampler_id\":0," +
                     "\"direction\":\"ingress\",\"wireless_station\":\"" + getAPmac() + "\"," +
                     "\"biflow_direction\":\"initiator\",\"pkts\":" + randomX.nextInt(500) + ",\"dst\":\"" + getIP() + "\"," +
-                    "\"type\":\"NetFlowv10\",\"client_campus\":\"" + zonas[zonaInt] + " campus" + "\"," +
-                    "\"client_building\":\"" + zonas[zonaInt] + " building" + "\",\"timestamp\":" + ((System.currentTimeMillis() / 1000)) + "," +
+                    "\"type\":\"NetFlowv10\",\"campus\":\"" + zonas[zonaInt] + " campus" + "\"," +
+                    "\"building\":\"" + zonas[zonaInt] + " building" + "\",\"timestamp\":" + ((System.currentTimeMillis() / 1000)) + "," +
                     "\"client_mac\":\"" + client_mac + "\",\"wireless_id\":\"" + getSSID() + "\"," +
                     "\"flow_end_reason\":\"idle timeout\",\"src_net\":\"0.0.0.0/0\"," +
                     "\"client_rssi_num\":" + (-randomX.nextInt(80)) + ",\"engine_id_name\":\"IANA-L4\"," +
@@ -343,7 +357,7 @@ public class ProducerThread extends Thread {
                     "\"application_id_name\":\"" + apps[zonaInt] + "\",\"dst_net\":\"0.0.0.0/0\"," +
                     "\"l4_proto\":" + randomX.nextInt(10) + ",\"ip_protocol_version\":4,\"dst_net_name\":\"0.0.0.0/0\"," +
                     "\"sensor_name\":\"sensor_" + namespace + "_" + tiers.get(namespace)  +"\" ,\"src_country_code\":\"US\"," +
-                    "\"client_floor\":\"" + zonas[zonaInt] + " floor" + "\",\"engine_id\":" + randomX.nextInt(20) +
+                    "\"floor\":\"" + zonas[zonaInt] + " floor" + "\",\"engine_id\":" + randomX.nextInt(20) +
                     ",\"client_mac_vendor\":\"SAMSUNG ELECTRO-MECHANICS\", \"first_switched\": " + ((System.currentTimeMillis() / 1000) - (2 * 60)) +
                     ", \"namespace_id\":" + namespace + ", \"tier\":\"" + tiers.get(namespace) +"\", \"sensor_id\":" + getSensorId(namespace) +"}";
         }else {
