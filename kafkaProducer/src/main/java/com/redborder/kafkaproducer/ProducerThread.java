@@ -37,8 +37,8 @@ public class ProducerThread extends Thread {
 
     String topics;
     int index = 0;
-    Map<Integer, String> tiers = new HashMap<Integer, String>();
-    Map<Integer, Integer> sensorId = new HashMap<Integer, Integer>();
+    Map<String, String> tiers = new HashMap<String, String>();
+    Map<String, Integer> sensorId = new HashMap<String, Integer>();
 
     public ProducerThread(String zookeeper, String topic, String brokerList, Integer events, Integer id, boolean enrich) {
         this.zookeeper = zookeeper;
@@ -47,26 +47,14 @@ public class ProducerThread extends Thread {
         this.events = events;
         this.id = id;
         this.enrich = enrich;
-        tiers.put(2, "gold");
-        tiers.put(3, "silver");
-        tiers.put(4, "bronze");
-        tiers.put(5, "silver");
-        tiers.put(6, "gold");
-        tiers.put(7, "bronze");
-        tiers.put(8, "silver");
-        tiers.put(9, "gold");
-        tiers.put(10, "silver");
-        tiers.put(11, "bronze");
-        sensorId.put(2, 2);
-        sensorId.put(3, 5);
-        sensorId.put(4, 6);
-        sensorId.put(9, 7);
-        sensorId.put(10, 8);
-        sensorId.put(11, 9);
-        sensorId.put(12, 10);
-        sensorId.put(13, 11);
-        sensorId.put(14, 12);
-        sensorId.put(15, 13);
+        tiers.put("11111111-1111-1111-1111-111111111111", "gold");
+        tiers.put("22222222-2222-2222-2222-222222222222", "silver");
+        tiers.put("33333333-3333-3333-3333-333333333333", "silver");
+        tiers.put("44444444-4444-4444-4444-444444444444", "silver");
+        sensorId.put("11111111-1111-1111-1111-111111111111", 2);
+        sensorId.put("22222222-2222-2222-2222-222222222222", 5);
+        sensorId.put("33333333-3333-3333-3333-333333333333", 6);
+        sensorId.put("44444444-4444-4444-4444-444444444444", 7);
     }
 
     public void terminate() {
@@ -263,8 +251,13 @@ public class ProducerThread extends Thread {
         return ip[ips];
     }
 
-    public static Integer namespace() {
-        Integer[] namespaces = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+    public static String namespace() {
+        String[] namespaces = {
+            "11111111-1111-1111-1111-111111111111",
+            "22222222-2222-2222-2222-222222222222",
+            "33333333-3333-3333-3333-333333333333",
+            "44444444-4444-4444-4444-444444444444"
+        };
 
         int index = new Random().nextInt(namespaces.length);
 
@@ -272,8 +265,6 @@ public class ProducerThread extends Thread {
     }
 
     public KeyedMessage getLocation() {
-
-
         String[] status = {"ASSOCIATED", "PROBING", "UNKNOWN"};
         int statusInt = randomX.nextInt(status.length);
 
@@ -313,7 +304,7 @@ public class ProducerThread extends Thread {
         return new KeyedMessage<String, String>("rb_loc", client_mac, loc);
     }
 
-    public Integer getSensorId(Integer namespace_id) {
+    public Integer getSensorId(String namespace_id) {
         return sensorId.get(namespace_id);
     }
 
@@ -338,7 +329,7 @@ public class ProducerThread extends Thread {
         double random1k = random2 / 100;
         String client_mac = getMac();
         String flow = null;
-        Integer namespace = namespace();
+        String namespace = namespace();
 
         if (enrich) {
 
@@ -359,7 +350,7 @@ public class ProducerThread extends Thread {
                     "\"sensor_name\":\"sensor_" + namespace + "_" + tiers.get(namespace)  +"\" ,\"src_country_code\":\"US\"," +
                     "\"floor\":\"" + zonas[zonaInt] + " floor" + "\",\"engine_id\":" + randomX.nextInt(20) +
                     ",\"client_mac_vendor\":\"SAMSUNG ELECTRO-MECHANICS\", \"first_switched\": " + ((System.currentTimeMillis() / 1000) - (2 * 60)) +
-                    ", \"namespace_id\":" + namespace + ", \"tier\":\"" + tiers.get(namespace) +"\", \"sensor_id\":" + getSensorId(namespace) +"}";
+                    ", \"namespace_id\":\"" + namespace + "\", \"tier\":\"" + tiers.get(namespace) +"\", \"sensor_id\":" + getSensorId(namespace) +"}";
         }else {
 
             flow = "{" +
@@ -377,7 +368,7 @@ public class ProducerThread extends Thread {
                     "\"l4_proto\":" + randomX.nextInt(10) + ",\"ip_protocol_version\":4,\"dst_net_name\":\"0.0.0.0/0\"," +
                     "\"sensor_name\":\"sensor_" + namespace + "_" + tiers.get(namespace) +"\" ," +
                     "\"engine_id\":" + randomX.nextInt(20) +
-                    ", \"first_switched\": " + ((System.currentTimeMillis() / 1000) - (2 * 60)) + ", \"namespace_id\":" + namespace + ", \"tier\":\"" + tiers.get(namespace) +
+                    ", \"first_switched\": " + ((System.currentTimeMillis() / 1000) - (2 * 60)) + ", \"namespace_id\":\"" + namespace + "\", \"tier\":\"" + tiers.get(namespace) +
                     "\", \"sensor_id\":" +getSensorId(namespace) +"}";
         }
 
@@ -396,7 +387,7 @@ public class ProducerThread extends Thread {
         int msgInt = new Random().nextInt(msg.length);
         String client_mac = getMac();
 
-        Integer namespace = namespace();
+        String namespace = namespace();
 
         String event = "{\"timestamp\":" + ((System.currentTimeMillis() / 1000)) + ", \"sensor_id\":7, \"type\":\"ips\", \"sensor_name\":\"rbips\", \"sensor_ip\":\"90.1.44.3\"," +
                 " \"domain_name\":\"IPS\", \"group_name\":\"default\", \"group_id\":8, \"sig_generator\":1, \"sig_id\":25521," +
@@ -411,7 +402,7 @@ public class ProducerThread extends Thread {
                 " \"src_port\":92, \"dst_port\":80, \"ethsrc\":\"" + client_mac + "\", " +
                 "\"ethdst\":\"" + getMac() + "\", \"ethlength\":264," +
                 "\"sensor_name\":\"sensor_" + namespace + "_" + tiers.get(namespace) +"\" ," +
-                "\"namespace_id\": " + namespace + ", \"tier\":\"" + tiers.get(namespace) +"\", \"sensor_id\":" + getSensorId(namespace) + ", " +
+                "\"namespace_id\":\"" + namespace + "\", \"tier\":\"" + tiers.get(namespace) +"\", \"sensor_id\":" + getSensorId(namespace) + ", " +
                 " \"ethlength_range\":\"(256-512]\", \"tcpflags\":\"***AP***\"," +
                 " \"tcpseq\":432143985, \"tcpack\":3505747298, \"tcplen\":32, " +
                 "\"tcpwindow\":229, \"ttl\":" + new Random().nextInt(120) + ", \"tos\":0, \"id\":31461, " +
