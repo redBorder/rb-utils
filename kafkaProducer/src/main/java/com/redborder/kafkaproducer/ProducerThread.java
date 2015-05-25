@@ -47,14 +47,14 @@ public class ProducerThread extends Thread {
         this.events = events;
         this.id = id;
         this.enrich = enrich;
-        tiers.put("11111111-1111-1111-1111-111111111111", "gold");
-        tiers.put("22222222-2222-2222-2222-222222222222", "silver");
-        tiers.put("33333333-3333-3333-3333-333333333333", "silver");
-        tiers.put("44444444-4444-4444-4444-444444444444", "silver");
-        sensorId.put("11111111-1111-1111-1111-111111111111", 2);
-        sensorId.put("22222222-2222-2222-2222-222222222222", 5);
-        sensorId.put("33333333-3333-3333-3333-333333333333", 6);
-        sensorId.put("44444444-4444-4444-4444-444444444444", 7);
+        tiers.put("11111111", "gold");
+        tiers.put("22222222", "silver");
+        tiers.put("33333333", "silver");
+        tiers.put("44444444", "silver");
+        sensorId.put("11111111", 2);
+        sensorId.put("22222222", 5);
+        sensorId.put("33333333", 6);
+        sensorId.put("44444444", 7);
     }
 
     public void terminate() {
@@ -253,10 +253,10 @@ public class ProducerThread extends Thread {
 
     public static String namespace() {
         String[] namespaces = {
-            "11111111-1111-1111-1111-111111111111",
-            "22222222-2222-2222-2222-222222222222",
-            "33333333-3333-3333-3333-333333333333",
-            "44444444-4444-4444-4444-444444444444"
+            "11111111",
+            "22222222",
+            "33333333",
+            "44444444"
         };
 
         int index = new Random().nextInt(namespaces.length);
