@@ -350,7 +350,7 @@ public class ProducerThread extends Thread {
                     "\"sensor_name\":\"sensor_" + namespace + "_" + tiers.get(namespace)  +"\" ,\"src_country_code\":\"US\"," +
                     "\"floor\":\"" + zonas[zonaInt] + " floor" + "\",\"engine_id\":" + randomX.nextInt(20) +
                     ",\"client_mac_vendor\":\"SAMSUNG ELECTRO-MECHANICS\", \"first_switched\": " + ((System.currentTimeMillis() / 1000) - (2 * 60)) +
-                    ", \"namespace_id\":\"" + namespace + "\", \"tier\":\"" + tiers.get(namespace) +"\", \"sensor_id\":" + getSensorId(namespace) +"}";
+                    ", \"namespace_uuid\":\"" + namespace + "\", \"tier\":\"" + tiers.get(namespace) +"\", \"sensor_uuid\":" + getSensorId(namespace) +"}";
         }else {
 
             flow = "{" +
@@ -368,8 +368,8 @@ public class ProducerThread extends Thread {
                     "\"l4_proto\":" + randomX.nextInt(10) + ",\"ip_protocol_version\":4,\"dst_net_name\":\"0.0.0.0/0\"," +
                     "\"sensor_name\":\"sensor_" + namespace + "_" + tiers.get(namespace) +"\" ," +
                     "\"engine_id\":" + randomX.nextInt(20) +
-                    ", \"first_switched\": " + ((System.currentTimeMillis() / 1000) - (2 * 60)) + ", \"namespace_id\":\"" + namespace + "\", \"tier\":\"" + tiers.get(namespace) +
-                    "\", \"sensor_id\":" +getSensorId(namespace) +"}";
+                    ", \"first_switched\": " + ((System.currentTimeMillis() / 1000) - (2 * 60)) + ", \"namespace_uuid\":\"" + namespace + "\", \"tier\":\"" + tiers.get(namespace) +
+                    "\", \"sensor_uuid\":" +getSensorId(namespace) +"}";
         }
 
         return new KeyedMessage<String, String>("rb_flow", client_mac, flow);
@@ -389,7 +389,7 @@ public class ProducerThread extends Thread {
 
         String namespace = namespace();
 
-        String event = "{\"timestamp\":" + ((System.currentTimeMillis() / 1000)) + ", \"sensor_id\":7, \"type\":\"ips\", \"sensor_name\":\"rbips\", \"sensor_ip\":\"90.1.44.3\"," +
+        String event = "{\"timestamp\":" + ((System.currentTimeMillis() / 1000)) + ", \"sensor_uuid\":7, \"type\":\"ips\", \"sensor_name\":\"rbips\", \"sensor_ip\":\"90.1.44.3\"," +
                 " \"domain_name\":\"IPS\", \"group_name\":\"default\", \"group_id\":8, \"sig_generator\":1, \"sig_id\":25521," +
                 " \"rev\":3, \"priority\":\"high\", \"classification\":\"" + classification[classificationInt] + "\"," +
                 " \"action\":\"alert\", \"msg\":\"" + msg[msgInt] + "\"," +
@@ -402,7 +402,7 @@ public class ProducerThread extends Thread {
                 " \"src_port\":92, \"dst_port\":80, \"ethsrc\":\"" + client_mac + "\", " +
                 "\"ethdst\":\"" + getMac() + "\", \"ethlength\":264," +
                 "\"sensor_name\":\"sensor_" + namespace + "_" + tiers.get(namespace) +"\" ," +
-                "\"namespace_id\":\"" + namespace + "\", \"tier\":\"" + tiers.get(namespace) +"\", \"sensor_id\":" + getSensorId(namespace) + ", " +
+                "\"namespace_uuid\":\"" + namespace + "\", \"tier\":\"" + tiers.get(namespace) +"\", \"sensor_uuid\":" + getSensorId(namespace) + ", " +
                 " \"ethlength_range\":\"(256-512]\", \"tcpflags\":\"***AP***\"," +
                 " \"tcpseq\":432143985, \"tcpack\":3505747298, \"tcplen\":32, " +
                 "\"tcpwindow\":229, \"ttl\":" + new Random().nextInt(120) + ", \"tos\":0, \"id\":31461, " +
