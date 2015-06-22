@@ -110,6 +110,10 @@ public class ProducerThread extends Thread {
                 producer.send(getLocation());
             }
 
+            if(topicsList.contains("rb_loc10")){
+                producer.send(getMse10());
+            }
+
             if (topicsList.contains("rb_social")) {
                 producer.send(getSocial());
             }
@@ -262,6 +266,34 @@ public class ProducerThread extends Thread {
         int index = new Random().nextInt(namespaces.length);
 
         return namespaces[index];
+    }
+
+    public KeyedMessage getMse10(){
+
+
+        String client_mac = getMac();
+
+        String mse1 = "{\"notifications\":[{\"notificationType\":\"locationupdate\"," +
+                "\"subscriptionName\":\"motus-MSE-Alpha80\",\"entity\":\"WIRELESS_CLIENTS\"," +
+                "\"deviceId\":\"" + client_mac + "\",\"lastSeen\":\"2015-02-24T08:45:48.154+0000\"," +
+                "\"ssid\":\"ssid-test\",\"band\":null,\"apMacAddress\":\""+ getAPmac() + "\"," +
+                "\"locationMapHierarchy\":\"Motus>East>G\"," +
+                "\"locationCoordinate\":{\"x\":147.49353,\"y\":125.65644,\"z\":0.0," +
+                "\"unit\":\"FEET\"},\"confidenceFactor\":24.0,\"timestamp\":" + System.currentTimeMillis() + "}]}";
+
+        String mse2 = "{\"notifications\":[{\"notificationType\":\"locationupdate\"," +
+                "\"subscriptionName\":\"motus-MSE-Alpha80\",\"entity\":\"WIRELESS_CLIENTS\"," +
+                "\"deviceId\":\"" + client_mac + "\",\"lastSeen\":\"2015-02-24T08:45:48.154+0000\"," +
+                "\"ssid\":\"ssid-test\",\"band\":null,\"apMacAddress\":\""+ getAPmac() + "\"," +
+                "\"locationMapHierarchy\":\"Motus>Bottom>Bar\"," +
+                "\"locationCoordinate\":{\"x\":147.49353,\"y\":125.65644,\"z\":0.0," +
+                "\"unit\":\"FEET\"},\"confidenceFactor\":24.0,\"timestamp\":" + System.currentTimeMillis() + "}]}";
+
+        String [] mse = new String[]{mse1, mse2};
+
+
+
+        return new KeyedMessage<String, String>("rb_loc", client_mac, mse[randomX.nextInt(mse.length)]);
     }
 
     public KeyedMessage getLocation() {
