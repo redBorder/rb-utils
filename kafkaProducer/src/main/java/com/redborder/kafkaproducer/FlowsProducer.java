@@ -24,21 +24,15 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
 public class FlowsProducer {
-
     static Producer<String, String> producer;
     static String _brokerList = new String("");
 
-
     public static void main(String[] args) throws InterruptedException {
-
-
         final List<ProducerThread> threads = new ArrayList<ProducerThread>();
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
-
                 for (ProducerThread thread : threads) {
                     thread.terminate();
                 }
@@ -66,8 +60,8 @@ public class FlowsProducer {
         options.addOption("r", true, "Repeat X times.");
         options.addOption("h", "help", false, "Print help.");
 
-
         CommandLineParser parser = new BasicParser();
+
         try {
             cmdLine = parser.parse(options, args);
         } catch (ParseException e) {
@@ -82,9 +76,7 @@ public class FlowsProducer {
         if (!cmdLine.hasOption("i")) {
             if (cmdLine.hasOption("s")) {
                 events = Integer.valueOf(cmdLine.getOptionValue("s"));
-
             }
-
 
             if (!cmdLine.hasOption("topics")) {
                 System.out.println("You must specify topics");
@@ -92,11 +84,11 @@ public class FlowsProducer {
                 return;
             }
 
-
             String topics = cmdLine.getOptionValue("topics");
 
-            if (!(topics.contains("rb_flow") || topics.contains("rb_loc") || topics.contains("rb_event") || topics.contains("rb_social"))) {
-                System.out.println("Available topics: rb_flow   rb_loc   rb_event");
+            if (!(topics.contains("rb_flow") || topics.contains("rb_loc") || topics.contains("rb_event") ||
+                    topics.contains("rb_social") || topics.contains("rb_malware") || topics.contains("rb_mail"))) {
+                System.out.println("Available topics: rb_flow rb_loc rb_event rb_social rb_malware rb_mail");
                 return;
             }
 
@@ -111,28 +103,22 @@ public class FlowsProducer {
             }
 
             for (int i = 0; i < partitions; i++) {
-
                 if (!cmdLine.hasOption("b")) {
                     threads.add(new ProducerThread(cmdLine.getOptionValue("zk"), topics, "", events, i, enrich));
                 } else {
                     threads.add(new ProducerThread(cmdLine.getOptionValue("zk"), topics, cmdLine.getOptionValue("b"), events, i, enrich));
-
                 }
-
             }
 
             for (ProducerThread thread : threads) {
                 thread.start();
             }
-
         } else {
             boolean loop = true;
-
 
             ObjectMapper mapper = new ObjectMapper();
 
             Long delta = 0L;
-
 
             if (_brokerList.equals("")) {
                 configProducer(cmdLine.getOptionValue("zk"), false);
@@ -320,6 +306,7 @@ public class FlowsProducer {
             }
             client.close();
         }
+
         Properties props = new Properties();
         props.put("metadata.broker.list", _brokerList);
         props.put("serializer.class", "kafka.serializer.StringEncoder");
@@ -332,7 +319,5 @@ public class FlowsProducer {
 
         ProducerConfig config = new ProducerConfig(props);
         producer = new Producer<String, String>(config);
-
     }
-
 }

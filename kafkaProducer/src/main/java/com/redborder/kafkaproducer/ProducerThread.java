@@ -13,15 +13,12 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.joda.time.DateTime;
 
 import java.io.IOException;
+import java.security.MessageDigest;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * Created by andresgomez on 7/11/14.
- */
 public class ProducerThread extends Thread {
-
     Random randomX = new Random();
     boolean run = true;
     int events;
@@ -39,6 +36,7 @@ public class ProducerThread extends Thread {
     int index = 0;
     Map<String, String> tiers = new HashMap<String, String>();
     Map<String, Integer> sensorId = new HashMap<String, Integer>();
+    Map<String, String> sha256MalwareNames = new HashMap<String, String>();
 
     public ProducerThread(String zookeeper, String topic, String brokerList, Integer events, Integer id, boolean enrich) {
         this.zookeeper = zookeeper;
@@ -55,6 +53,17 @@ public class ProducerThread extends Thread {
         sensorId.put("22222222", 5);
         sensorId.put("33333333", 6);
         sensorId.put("44444444", 7);
+        sha256MalwareNames.put(sha256("a"), "clean");
+        sha256MalwareNames.put(sha256("b"), "mwB");
+        sha256MalwareNames.put(sha256("c"), "clean");
+        sha256MalwareNames.put(sha256("d"), "clean");
+        sha256MalwareNames.put(sha256("e"), "mwE");
+        sha256MalwareNames.put(sha256("f"), "mwF");
+        sha256MalwareNames.put(sha256("g"), "mwG");
+        sha256MalwareNames.put(sha256("h"), "clean");
+        sha256MalwareNames.put(sha256("i"), "mwI");
+        sha256MalwareNames.put(sha256("j"), "mwJ");
+        sha256MalwareNames.put(sha256("k"), "clean");
     }
 
     public void terminate() {
@@ -106,6 +115,7 @@ public class ProducerThread extends Thread {
                     metrics = 0;
                 }
             }
+
             if (topicsList.contains("rb_loc")) {
                 producer.send(getLocation());
             }
@@ -117,8 +127,17 @@ public class ProducerThread extends Thread {
             if (topicsList.contains("rb_social")) {
                 producer.send(getSocial());
             }
+
             if (topicsList.contains("rb_event")) {
                 producer.send(getEvent());
+            }
+
+            if (topicsList.contains("rb_malware")) {
+                producer.send(getMalware());
+            }
+
+            if (topicsList.contains("rb_mail")) {
+                producer.send(getMail());
             }
 
             if (times == 0) {
@@ -416,7 +435,6 @@ public class ProducerThread extends Thread {
         int classificationInt = new Random().nextInt(classification.length);
         int msgInt = new Random().nextInt(msg.length);
         String client_mac = getMac();
-
         String namespace = namespace();
 
         String event = "{\"timestamp\":" + ((System.currentTimeMillis() / 1000)) + ", \"sensor_uuid\":7, \"type\":\"ips\", \"sensor_name\":\"rbips\", \"sensor_ip\":\"90.1.44.3\"," +
@@ -430,7 +448,8 @@ public class ProducerThread extends Thread {
                 " \"src_as_name\":\"TCH Network Services\", \"dst\":\"" + getIP() + "\", \"dst_net\":\"0.0.0.0/0\"," +
                 " \"dst_net_name\":\"0.0.0.0/0\", \"dst_as\":2914, \"dst_as_name\":\"NTT America, Inc.\"," +
                 " \"src_port\":92, \"dst_port\":80, \"ethsrc\":\"" + client_mac + "\", " +
-                "\"ethdst\":\"" + getMac() + "\", \"ethlength\":264," +
+                "\"ethdst\":\"" + getMac() + "\", \"ethlength\":264, \"sha256\":\"" + getSha256() + "\", " +
+                "\"file_size\":372373, \"file_uri\": \"http://www.test.com/asd/test.gz\", \"file_hostname\":\"test.com\", " +
                 "\"sensor_name\":\"sensor_" + namespace + "_" + tiers.get(namespace) +"\" ," +
                 "\"namespace_uuid\":\"" + namespace + "\", \"tier\":\"" + tiers.get(namespace) +"\", \"sensor_uuid\":" + getSensorId(namespace) + ", " +
                 " \"ethlength_range\":\"(256-512]\", \"tcpflags\":\"***AP***\"," +
@@ -443,10 +462,58 @@ public class ProducerThread extends Thread {
         return new KeyedMessage<String, String>("rb_event", client_mac, event);
     }
 
+    public KeyedMessage getMalware() {
+        String client_mac = getMac();
+        String namespace = namespace();
+        String sha256 = getSha256();
+
+        String event = "{\"timestamp\":" + ((System.currentTimeMillis() / 1000)) + ", \"sha256\":\"" + sha256 + "\", " +
+                "\"sensor_name\":\"sensor_" + namespace + "_" + tiers.get(namespace) +"\" , \"malware_name\": \"" + sha256MalwareNames.get(sha256) + "\", " +
+                "\"namespace_uuid\":\"" + namespace + "\", \"sensor_uuid\":" + getSensorId(namespace) + ", \"score\":50}";
+
+        return new KeyedMessage<String, String>("rb_malware", client_mac, event);
+    }
+
+    public KeyedMessage getMail() {
+        String client_mac = getMac();
+        String namespace = namespace();
+        String sha256 = getSha256();
+
+        String event = "{\"timestamp\":" + ((System.currentTimeMillis() / 1000)) + ", \"sha256\":\"" + sha256 + "\", " +
+                "\"sensor_name\":\"sensor_" + namespace + "_" + tiers.get(namespace) +"\" , \"malware_name\": \"" + sha256MalwareNames.get(sha256) + "\", " +
+                "\"namespace_uuid\":\"" + namespace + "\", \"sensor_uuid\":" + getSensorId(namespace) + "}";
+
+        return new KeyedMessage<String, String>("rb_mail", client_mac, event);
+    }
+
     public String getUser(){
         String[] user = {"andres", "pepe", "jaime", "pablo", "carlos", "jota", "clara", "raquel", "eu", "carlosR", "angel"};
         int users = new Random().nextInt(user.length);
         return user[users];
+    }
+
+    public static String sha256(String base) {
+        try{
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(base.getBytes("UTF-8"));
+            StringBuffer hexString = new StringBuffer();
+
+            for (int i = 0; i < hash.length; i++) {
+                String hex = Integer.toHexString(0xff & hash[i]);
+                if(hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+
+            return hexString.toString();
+        } catch(Exception ex){
+            throw new RuntimeException(ex);
+        }
+    }
+
+    public String getSha256() {
+        String[] user = {"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"};
+        String random = user[new Random().nextInt(user.length)];
+        return sha256(random);
     }
 
     public String getGender(){
