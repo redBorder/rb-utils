@@ -31,7 +31,7 @@ import java.util.Map;
  */
 public class Key {
 
-    private final static String CONFIG_FILE_PATH = "/opt/rb/etc/redBorder-BI/config.yml";
+    private final static String CONFIG_FILE_PATH = "/opt/rb/etc/rb-bi/config.yml";
 
     public static void main(String[] args) throws FileNotFoundException {
 
