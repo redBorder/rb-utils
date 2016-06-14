@@ -53,17 +53,6 @@ public class ProducerThread extends Thread {
         sensorId.put("22222222", 5);
         sensorId.put("33333333", 6);
         sensorId.put("44444444", 7);
-        sha256MalwareNames.put(sha256("a"), "clean");
-        sha256MalwareNames.put(sha256("b"), "mwB");
-        sha256MalwareNames.put(sha256("c"), "clean");
-        sha256MalwareNames.put(sha256("d"), "clean");
-        sha256MalwareNames.put(sha256("e"), "mwE");
-        sha256MalwareNames.put(sha256("f"), "mwF");
-        sha256MalwareNames.put(sha256("g"), "mwG");
-        sha256MalwareNames.put(sha256("h"), "clean");
-        sha256MalwareNames.put(sha256("i"), "mwI");
-        sha256MalwareNames.put(sha256("j"), "mwJ");
-        sha256MalwareNames.put(sha256("k"), "clean");
     }
 
     public void terminate() {
@@ -120,7 +109,7 @@ public class ProducerThread extends Thread {
                 producer.send(getLocation());
             }
 
-            if(topicsList.contains("rb_loc10")){
+            if (topicsList.contains("rb_loc10")) {
                 producer.send(getMse10());
             }
 
@@ -129,11 +118,19 @@ public class ProducerThread extends Thread {
             }
 
             if (topicsList.contains("rb_event")) {
-                producer.send(getEvent());
+                producer.send(getEvent("ABCDEFG"));
             }
 
             if (topicsList.contains("rb_malware")) {
-                producer.send(getMalware());
+                String sha256 = getSha256();
+                String malware = getMalwareName();
+
+                if (!sha256MalwareNames.containsKey(sha256) || sha256MalwareNames.get(sha256).equals("clean")) {
+                    sha256MalwareNames.put(sha256, malware);
+                }
+
+                producer.send(getEvent(sha256));
+                producer.send(getMalware(sha256));
             }
 
             if (topicsList.contains("rb_mail")) {
@@ -232,18 +229,24 @@ public class ProducerThread extends Thread {
 
     public static Random randomHex = new Random();
 
-    public static Integer getHex(){
+    public static Integer getHex() {
         int idx = randomHex.nextInt(0xF);
         return idx;
     }
 
+    public static String getMalwareName() {
+        String[] malwares = {"clean", "trojan4x", "por56X", "win32.da13j"};
+        int idx = randomHex.nextInt(malwares.length);
+        return malwares[idx];
+    }
+
     public static String getMac() {
         String mac = "00" + ":" +
-                     "00" + ":" +
-                     "00" + ":" +
-                     "00" + ":" +
-                     "0" + String.format("%x", getHex()) + ":" +
-                     String.format("%x", getHex()) + String.format("%x", getHex());
+                "00" + ":" +
+                "00" + ":" +
+                "00" + ":" +
+                "0" + String.format("%x", getHex()) + ":" +
+                String.format("%x", getHex()) + String.format("%x", getHex());
 
         return mac;
     }
@@ -254,16 +257,16 @@ public class ProducerThread extends Thread {
 
         int idx = new Random().nextInt(macs.length);
         return macs[idx];
-
     }
 
     public static String getIP() {
-        String[] ip = {"192.168.2.3", "80.2.11.4", "90.1.44.3",
-                "98.11.22.55"};
+        String ip = "192.168.";
+        Integer i = new Random().nextInt(255);
+        ip = ip + i + ".";
+        i = new Random().nextInt(255);
+        ip = ip + i;
 
-        int ips = new Random().nextInt(ip.length);
-
-        return ip[ips];
+        return ip;
     }
 
     public static String getSSID() {
@@ -276,10 +279,7 @@ public class ProducerThread extends Thread {
 
     public static String namespace() {
         String[] namespaces = {
-            "11111111",
-            "22222222",
-            "33333333",
-            "44444444"
+                "11111111"
         };
 
         int index = new Random().nextInt(namespaces.length);
@@ -287,7 +287,7 @@ public class ProducerThread extends Thread {
         return namespaces[index];
     }
 
-    public KeyedMessage getMse10(){
+    public KeyedMessage getMse10() {
 
 
         String client_mac = getMac();
@@ -295,7 +295,7 @@ public class ProducerThread extends Thread {
         String mse1 = "{\"notifications\":[{\"notificationType\":\"locationupdate\"," +
                 "\"subscriptionName\":\"motus-MSE-Alpha80\",\"entity\":\"WIRELESS_CLIENTS\"," +
                 "\"deviceId\":\"" + client_mac + "\",\"lastSeen\":\"2015-02-24T08:45:48.154+0000\"," +
-                "\"ssid\":\"ssid-test\",\"band\":null,\"apMacAddress\":\""+ getAPmac() + "\"," +
+                "\"ssid\":\"ssid-test\",\"band\":null,\"apMacAddress\":\"" + getAPmac() + "\"," +
                 "\"locationMapHierarchy\":\"Motus>East>G\"," +
                 "\"locationCoordinate\":{\"x\":147.49353,\"y\":125.65644,\"z\":0.0," +
                 "\"unit\":\"FEET\"},\"confidenceFactor\":24.0,\"timestamp\":" + System.currentTimeMillis() + "}]}";
@@ -303,12 +303,12 @@ public class ProducerThread extends Thread {
         String mse2 = "{\"notifications\":[{\"notificationType\":\"locationupdate\"," +
                 "\"subscriptionName\":\"motus-MSE-Alpha80\",\"entity\":\"WIRELESS_CLIENTS\"," +
                 "\"deviceId\":\"" + client_mac + "\",\"lastSeen\":\"2015-02-24T08:45:48.154+0000\"," +
-                "\"ssid\":\"ssid-test\",\"band\":null,\"apMacAddress\":\""+ getAPmac() + "\"," +
+                "\"ssid\":\"ssid-test\",\"band\":null,\"apMacAddress\":\"" + getAPmac() + "\"," +
                 "\"locationMapHierarchy\":\"Motus>Bottom Bar>G\"," +
                 "\"locationCoordinate\":{\"x\":147.49353,\"y\":125.65644,\"z\":0.0," +
                 "\"unit\":\"FEET\"},\"confidenceFactor\":24.0,\"timestamp\":" + System.currentTimeMillis() + "}]}";
 
-        String [] mse = new String[]{mse1, mse2};
+        String[] mse = new String[]{mse1, mse2};
 
         return new KeyedMessage<String, String>("rb_loc", client_mac, mse[randomX.nextInt(mse.length)]);
     }
@@ -362,8 +362,8 @@ public class ProducerThread extends Thread {
         String[] status = {"ASSOCIATED", "PROBING", "UNKNOWN"};
         int statusInt = randomX.nextInt(status.length);
 
-        String[] zonas = {"Zone X", "Zone C", "Zone A", "Zone B",
-                "Zone Y"};
+        String[] zonas = {"zone_X", "zone_C", "zone_A", "zone_B",
+                "zone_Y"};
         int zonaInt = randomX.nextInt(zonas.length);
 
         String[] apps = {"APP X", "APP C", "APP A", "APP B",
@@ -396,11 +396,11 @@ public class ProducerThread extends Thread {
                     "\"sensor_ip\":\"90.1.44.3\"," +
                     "\"application_id_name\":\"" + apps[zonaInt] + "\",\"dst_net\":\"0.0.0.0/0\"," +
                     "\"l4_proto\":" + randomX.nextInt(10) + ",\"ip_protocol_version\":4,\"dst_net_name\":\"0.0.0.0/0\"," +
-                    "\"sensor_name\":\"sensor_" + namespace + "_" + tiers.get(namespace)  +"\" ,\"src_country_code\":\"US\"," +
+                    "\"sensor_name\":\"sensor_" + zonas[zonaInt] + "_" + tiers.get(namespace) + "\" ,\"src_country_code\":\"US\"," +
                     "\"floor\":\"" + zonas[zonaInt] + " floor" + "\",\"engine_id\":" + randomX.nextInt(20) +
                     ",\"client_mac_vendor\":\"SAMSUNG ELECTRO-MECHANICS\", \"first_switched\": " + ((System.currentTimeMillis() / 1000) - (2 * 60)) +
-                    ", \"namespace_uuid\":\"" + namespace + "\", \"tier\":\"" + tiers.get(namespace) +"\", \"sensor_uuid\":" + getSensorId(namespace) +"}";
-        }else {
+                    ", \"namespace_uuid\":\"" + namespace + "\", \"tier\":\"" + tiers.get(namespace) + "\", \"sensor_uuid\":" + getSensorId(namespace) + "}";
+        } else {
 
             flow = "{" +
                     "\"bytes\":" + new Random().nextInt(3000) + ",\"src_net_name\":\"0.0.0.0/0\",\"flow_sampler_id\":0," +
@@ -415,16 +415,16 @@ public class ProducerThread extends Thread {
                     "\"sensor_ip\":\"90.1.44.3\"," +
                     "\"application_id_name\":\"" + apps[zonaInt] + "\",\"dst_net\":\"0.0.0.0/0\"," +
                     "\"l4_proto\":" + randomX.nextInt(10) + ",\"ip_protocol_version\":4,\"dst_net_name\":\"0.0.0.0/0\"," +
-                    "\"sensor_name\":\"sensor_" + namespace + "_" + tiers.get(namespace) +"\" ," +
+                    "\"sensor_name\":\"sensor_" + namespace + "_" + tiers.get(namespace) + "\" ," +
                     "\"engine_id\":" + randomX.nextInt(20) +
                     ", \"first_switched\": " + ((System.currentTimeMillis() / 1000) - (2 * 60)) + ", \"namespace_uuid\":\"" + namespace + "\", \"tier\":\"" + tiers.get(namespace) +
-                    "\", \"sensor_uuid\":" +getSensorId(namespace) +"}";
+                    "\", \"sensor_uuid\":" + getSensorId(namespace) + "}";
         }
 
         return new KeyedMessage<String, String>("rb_flow", client_mac, flow);
     }
 
-    public KeyedMessage getEvent() {
+    public KeyedMessage getEvent(String sha256) {
 
         String[] classification = {"Potential Corporate Privacy Violation", "Sensitive Data was Transmitted Across the Network", "Potentially Bad Traffic",
                 "Unknown Traffic"};
@@ -450,25 +450,24 @@ public class ProducerThread extends Thread {
                 " \"src_port\":92, \"dst_port\":80, \"ethsrc\":\"" + client_mac + "\", " +
                 "\"ethdst\":\"" + getMac() + "\", \"ethlength\":264, \"sha256\":\"" + getSha256() + "\", " +
                 "\"file_size\":372373, \"file_uri\": \"http://www.test.com/asd/test.gz\", \"file_hostname\":\"test.com\", " +
-                "\"sensor_name\":\"sensor_" + namespace + "_" + tiers.get(namespace) +"\" ," +
-                "\"namespace_uuid\":\"" + namespace + "\", \"tier\":\"" + tiers.get(namespace) +"\", \"sensor_uuid\":" + getSensorId(namespace) + ", " +
+                "\"sensor_name\":\"sensor_" + namespace + "_" + tiers.get(namespace) + "\" ," +
+                "\"namespace_uuid\":\"" + namespace + "\", \"tier\":\"" + tiers.get(namespace) + "\", \"sensor_uuid\":" + getSensorId(namespace) + ", " +
                 " \"ethlength_range\":\"(256-512]\", \"tcpflags\":\"***AP***\"," +
                 " \"tcpseq\":432143985, \"tcpack\":3505747298, \"tcplen\":32, " +
                 "\"tcpwindow\":229, \"ttl\":" + new Random().nextInt(120) + ", \"tos\":0, \"id\":31461, " +
                 "\"dgmlen\":250, \"iplen\":256000, \"iplen_range\":\"[131072-262144)\"," +
-                " \"src_country\":\"United States\", \"dst_country\":\"United States\"," +
-                " \"src_country_code\":\"US\", \"dst_country_code\":\"US\", \"ethsrc_vendor\":\"Cisco\", \"ethdst_vendor\":\"Cisco\"}";
+                " \"src_country\":\"United States\", \"dst_country\":\"United States\", \"ControllerSDN\":\"OFL\"," +
+                " \"src_country_code\":\"US\", \"dst_country_code\":\"US\", \"ethsrc_vendor\":\"Cisco\", \"ethdst_vendor\":\"Cisco\", \"sha256\":\"" + sha256 + "\" }";
 
         return new KeyedMessage<String, String>("rb_event", client_mac, event);
     }
 
-    public KeyedMessage getMalware() {
+    public KeyedMessage getMalware(String sha256) {
         String client_mac = getMac();
         String namespace = namespace();
-        String sha256 = getSha256();
 
         String event = "{\"timestamp\":" + ((System.currentTimeMillis() / 1000)) + ", \"sha256\":\"" + sha256 + "\", " +
-                "\"sensor_name\":\"sensor_" + namespace + "_" + tiers.get(namespace) +"\" , \"malware_name\": \"" + sha256MalwareNames.get(sha256) + "\", " +
+                "\"sensor_name\":\"sensor_" + namespace + "_" + tiers.get(namespace) + "\" , \"malware_name\": \"" + sha256MalwareNames.get(sha256) + "\", " +
                 "\"namespace_uuid\":\"" + namespace + "\", \"sensor_uuid\":" + getSensorId(namespace) + ", \"score\":50}";
 
         return new KeyedMessage<String, String>("rb_malware", client_mac, event);
@@ -480,67 +479,66 @@ public class ProducerThread extends Thread {
         String sha256 = getSha256();
 
         String event = "{\"timestamp\":" + ((System.currentTimeMillis() / 1000)) + ", \"sha256\":\"" + sha256 + "\", " +
-                "\"sensor_name\":\"sensor_" + namespace + "_" + tiers.get(namespace) +"\" , \"malware_name\": \"" + sha256MalwareNames.get(sha256) + "\", " +
+                "\"sensor_name\":\"sensor_" + namespace + "_" + tiers.get(namespace) + "\" , \"malware_name\": \"" + sha256MalwareNames.get(sha256) + "\", " +
                 "\"namespace_uuid\":\"" + namespace + "\", \"sensor_uuid\":" + getSensorId(namespace) + "}";
 
         return new KeyedMessage<String, String>("rb_mail", client_mac, event);
     }
 
-    public String getUser(){
+    public String getUser() {
         String[] user = {"andres", "pepe", "jaime", "pablo", "carlos", "jota", "clara", "raquel", "eu", "carlosR", "angel"};
         int users = new Random().nextInt(user.length);
         return user[users];
     }
 
     public static String sha256(String base) {
-        try{
+        try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(base.getBytes("UTF-8"));
             StringBuffer hexString = new StringBuffer();
 
             for (int i = 0; i < hash.length; i++) {
                 String hex = Integer.toHexString(0xff & hash[i]);
-                if(hex.length() == 1) hexString.append('0');
+                if (hex.length() == 1) hexString.append('0');
                 hexString.append(hex);
             }
 
             return hexString.toString();
-        } catch(Exception ex){
+        } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
     }
 
     public String getSha256() {
-        String[] user = {"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"};
-        String random = user[new Random().nextInt(user.length)];
+        String random = Integer.valueOf(new Random().nextInt(10000000)).toString();
         return sha256(random);
     }
 
-    public String getGender(){
+    public String getGender() {
         String[] gender = {"male", "female"};
         int genders = new Random().nextInt(gender.length);
         return gender[genders];
     }
 
-    public String getLang(){
+    public String getLang() {
         String[] lang = {"es", "us", "en", "rs", "fr", "xs", "lm", "cy", "pe", "ab", "er"};
         int langs = new Random().nextInt(lang.length);
         return lang[langs];
     }
 
-    public String getType(){
+    public String getType() {
         String[] type = {"twitter", "facebook",};
         int types = new Random().nextInt(type.length);
         return type[types];
     }
 
-    public String getDevice(){
+    public String getDevice() {
         String[] device = {"Iphone", "Acer", "MacBookPro", "iMac", "LG"};
         int devices = new Random().nextInt(device.length);
         return device[devices];
     }
 
-    public  KeyedMessage getSocial(){
+    public KeyedMessage getSocial() {
         double lat = 37.40;
         double lon = 26.97;
 
@@ -553,11 +551,11 @@ public class ProducerThread extends Thread {
 
         String type = getType();
         String social = "{\"sensor_name\": \"rb_social\"," +
-                " \"type\":\""+type+"\"," +
-                " \"username\":\""+getUser()+"\", \"avatar\":\"http://a2.twimg.com/profile_images/1302306721/twitterpic_normal.jpg\"," +
-                " \"link\":\"http://"+type+".com/statuses/"+id+"\"," +
-                " \"timestamp\": "+ (System.currentTimeMillis() / 1000)  +", \"msg\": \"(content)\", \"client_latlong\":\""+ (lat + randomOk) + "," + (lon - random1k) +"\"," +
-                " \"device\": \""+getDevice()+"\", \"gender\":\""+getGender()+"\", \"sentiment\": "+randomX.nextInt(10)+", \"language\": \" " + getLang() + "\"}";
+                " \"type\":\"" + type + "\"," +
+                " \"username\":\"" + getUser() + "\", \"avatar\":\"http://a2.twimg.com/profile_images/1302306721/twitterpic_normal.jpg\"," +
+                " \"link\":\"http://" + type + ".com/statuses/" + id + "\"," +
+                " \"timestamp\": " + (System.currentTimeMillis() / 1000) + ", \"msg\": \"(content)\", \"client_latlong\":\"" + (lat + randomOk) + "," + (lon - random1k) + "\"," +
+                " \"device\": \"" + getDevice() + "\", \"gender\":\"" + getGender() + "\", \"sentiment\": " + randomX.nextInt(10) + ", \"language\": \" " + getLang() + "\"}";
 
         return new KeyedMessage<String, String>("rb_social", social);
     }
